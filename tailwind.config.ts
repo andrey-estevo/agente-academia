@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -56,6 +59,20 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+          muted: "hsl(var(--sidebar-muted))",
+        },
+        status: {
+          waiting: "hsl(var(--status-waiting))",
+          attending: "hsl(var(--status-attending))",
+          finished: "hsl(var(--status-finished))",
+          bot: "hsl(var(--status-bot))",
+        },
+        wa: {
+          green: "hsl(var(--wa-green))",
+          "green-light": "hsl(var(--wa-green-light))",
+          "bubble-out": "hsl(var(--wa-bubble-out))",
+          "bubble-in": "hsl(var(--wa-bubble-in))",
+          "bubble-bot": "hsl(var(--wa-bubble-bot))",
         },
       },
       borderRadius: {
