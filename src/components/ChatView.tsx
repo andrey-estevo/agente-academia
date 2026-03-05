@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Send, UserCheck, XCircle, Bot, Phone, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 interface ChatViewProps {
@@ -24,6 +23,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const nome = String(conversation.cliente_nome || 'Cliente');
 
   useEffect(() => {
     loadMessages();
@@ -54,7 +55,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     try {
       await enviarMensagem(conversation.cliente_numero, input);
 
-      // adiciona mensagem local imediatamente
       setMessages(prev => [
         ...prev,
         {
@@ -62,7 +62,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
           conversa_id: conversation.id,
           texto: input,
           remetente: 'atendente',
-          horario: new Date().toISOString(),
+          horario: new Date().toLocaleTimeString().slice(0,5),
         }
       ]);
 
@@ -95,6 +95,13 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     }
   }
 
+  const iniciais = nome
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div className="flex flex-col h-full">
 
@@ -107,14 +114,14 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
         <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
           <span className="text-sm font-semibold text-accent">
-            {conversation.cliente_nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            {iniciais}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-foreground truncate">
-              {conversation.cliente_nome}
+              {nome}
             </h2>
 
             <StatusBadge status={conversation.status} size="xs" />
@@ -201,7 +208,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
                 <span>{msg.texto}</span>
 
                 <span className="block text-[10px] text-muted-foreground mt-1 text-right">
-                  {format(new Date(msg.horario), 'HH:mm')}
+                  {msg.horario}
                 </span>
 
               </div>

@@ -40,8 +40,9 @@ export function ConversationList({
       <AnimatePresence>
         {filtered.map((conv) => {
 
-          // compatibilidade com retorno do n8n
-          const nome = conv.cliente_nome || conv.nome || "Cliente";
+          // garante que nome sempre seja string
+          const nome = String(conv.cliente_nome || conv.nome || "Cliente");
+
           const horario = conv.horario || conv.ultima_atualizacao || "--";
           const status = conv.status || "aguardando";
           const setor = conv.setor || "geral";
