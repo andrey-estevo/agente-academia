@@ -1,23 +1,29 @@
 export type ConversationStatus =
-  | 'bot'
-  | 'aguardando'
-  | 'em_atendimento'
-  | 'finalizado';
+  | "bot"
+  | "aguardando"
+  | "em_atendimento"
+  | "finalizado";
 
-export type Sector = 'Financeiro' | 'Planos' | 'Geral' | 'financeiro' | 'planos' | 'geral';
+export type Sector =
+  | "financeiro"
+  | "planos"
+  | "geral"
+  | "Financeiro"
+  | "Planos"
+  | "Geral";
 
 export interface Conversation {
 
-  // formato do frontend antigo
+  // legado frontend
   id?: string;
   cliente_nome?: string;
   cliente_numero?: string;
   horario?: string;
 
-  // formato vindo do n8n
-  conversa_id?: number;
-  nome?: string;
+  // dados vindos do n8n
+  conversa_id?: string;
   numero?: string;
+  nome?: string;
   ultima_atualizacao?: string;
 
   ultima_mensagem?: string;
@@ -32,10 +38,10 @@ export interface Conversation {
 }
 
 export interface Message {
-  id?: string;
-  conversa_id: string | number;
+  id?: number;
+  conversa_id: string;
   texto: string;
-  remetente: 'cliente' | 'atendente' | 'bot';
+  remetente: "cliente" | "atendente" | "bot";
   horario: string;
 }
 

@@ -19,7 +19,23 @@ export function ConversationList({
   sectorFilter
 }: ConversationListProps) {
 
-  const filtered = conversations.filter((c) => {
+  // remove duplicados pelo numero/conversa_id
+  const uniqueMap = new Map<string, Conversation>();
+
+  conversations.forEach((c) => {
+    const key = String(c.numero || c.conversa_id || c.id);
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, {
+        ...c,
+        numero: key,
+        conversa_id: key
+      });
+    }
+  });
+
+  const unique = Array.from(uniqueMap.values());
+
+  const filtered = unique.filter((c) => {
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
     if (sectorFilter !== "all" && c.setor !== sectorFilter) return false;
     return true;
@@ -40,21 +56,22 @@ export function ConversationList({
       <AnimatePresence>
         {filtered.map((conv) => {
 
-          // garante que nome sempre seja string
-          const nome = String(conv.cliente_nome || conv.nome || "Cliente");
+          const numero = String(conv.numero || conv.conversa_id);
 
-          const horario = conv.horario || conv.ultima_atualizacao || "--";
+          const nome = numero;
+
+          const horario =
+            conv.horario ||
+            conv.ultima_atualizacao ||
+            "--";
+
           const status = conv.status || "aguardando";
+
           const setor = conv.setor || "geral";
 
-          const id = conv.id || conv.conversa_id || Math.random();
+          const id = numero;
 
-          const iniciais = nome
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
+          const iniciais = numero.slice(-2);
 
           return (
             <motion.button
