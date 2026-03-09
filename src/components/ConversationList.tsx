@@ -11,6 +11,20 @@ interface ConversationListProps {
   sectorFilter: Sector | "all";
 }
 
+function formatarTelefone(numero: string) {
+  const n = numero.replace(/\D/g, "");
+
+  if (n.length === 13) {
+    return `+${n.slice(0,2)} (${n.slice(2,4)}) ${n.slice(4,9)}-${n.slice(9)}`;
+  }
+
+  if (n.length === 11) {
+    return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+  }
+
+  return numero;
+}
+
 export function ConversationList({
   conversations,
   selectedId,
@@ -19,16 +33,20 @@ export function ConversationList({
   sectorFilter
 }: ConversationListProps) {
 
-  // remove duplicados pelo numero/conversa_id
   const uniqueMap = new Map<string, Conversation>();
 
   conversations.forEach((c) => {
-    const key = String(c.numero || c.conversa_id || c.id);
-    if (!uniqueMap.has(key)) {
-      uniqueMap.set(key, {
+
+    const numero =
+      String(c.numero || c.conversa_id || c.id)
+      .replace("@s.whatsapp.net", "")
+      .replace(/\D/g, "");
+
+    if (!uniqueMap.has(numero)) {
+      uniqueMap.set(numero, {
         ...c,
-        numero: key,
-        conversa_id: key
+        numero: numero,
+        conversa_id: numero
       });
     }
   });
@@ -56,9 +74,14 @@ export function ConversationList({
       <AnimatePresence>
         {filtered.map((conv) => {
 
-          const numero = String(conv.numero || conv.conversa_id);
+          const numeroRaw =
+            String(conv.numero || conv.conversa_id || conv.id);
 
-          const nome = numero;
+          const numero = numeroRaw
+            .replace("@s.whatsapp.net", "")
+            .replace(/\D/g, "");
+
+          const nome = formatarTelefone(numero);
 
           const horario =
             conv.horario ||
@@ -97,7 +120,7 @@ export function ConversationList({
                 <div className="flex-1 min-w-0">
 
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-foreground truncate">
+                    <span className="text-sm font-medium text-foreground">
                       {nome}
                     </span>
 
