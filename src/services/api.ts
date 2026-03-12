@@ -4,100 +4,161 @@ const API_BASE_URL =
   import.meta.env.VITE_N8N_API_URL ||
   "https://noisygrasshopper-n8n.cloudfy.live/webhook";
 
+/* ================================
+   FETCH BASE
+================================ */
+
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
       "Content-Type": "application/json",
-      ...options?.headers,
+      ...(options?.headers || {})
     },
-    ...options,
+    ...options
   });
 
   if (!response.ok) {
-    throw new Error("Erro na API");
+    throw new Error(`Erro API: ${response.status}`);
   }
 
-  return response.json();
+  const text = await response.text();
+
+  if (!text || text.trim() === "") {
+    return [] as T;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return [] as T;
+  }
+
 }
 
-export const api = {
+/* ================================
+   API PRINCIPAL
+================================ */
 
-  // LISTAR CONVERSAS
+export const activeApi = {
+
+  /* ================================
+     LISTAR CONVERSAS
+  ================================= */
+
   getConversas: async (): Promise<Conversation[]> => {
 
-    const res = await fetchAPI<any>(`/conversas`);
+    const res = await fetchAPI<any[]>(`/conversas`);
 
     if (!Array.isArray(res)) return [];
 
-    const map = new Map<string, Conversation>();
+    return res.map((c) => {
 
-    res.forEach((c: any) => {
+      const numero = String(c.numero || c.conversa_id || "")
+        .replace("@s.whatsapp.net", "")
+        .replace(/\D/g, "");
 
-      const numero = String(c.numero || c.conversa_id);
-
-      if (!map.has(numero)) {
-        map.set(numero, {
-          ...c,
-          numero,
-          conversa_id: numero
-        });
-      }
+      return {
+        conversa_id: numero,
+        numero: numero,
+        nome: c.nome || numero || "Cliente",
+        ultima_mensagem: c.ultima_mensagem || "",
+        ultima_atualizacao: c.ultima_atualizacao || "",
+        status: c.status || "bot",
+        setor: c.setor || "geral",
+        unidade_id: c.unidade_id || ""
+      };
 
     });
 
-    return Array.from(map.values());
   },
 
-  // LISTAR MENSAGENS
+  /* ================================
+     LISTAR MENSAGENS
+  ================================= */
+
   getMensagens: async (conversaId: string): Promise<Message[]> => {
 
-    const res = await fetchAPI<any>(`/mensagens?conversa_id=${conversaId}`);
+    const numero = String(conversaId || "")
+      .replace("@s.whatsapp.net", "")
+      .replace(/\D/g, "");
+
+    const res = await fetchAPI<any[]>(`/mensagens?numero=${numero}`);
 
     if (!Array.isArray(res)) return [];
 
     return res
-      .filter((msg: any) => String(msg.conversa_id) === String(conversaId))
-      .map((msg: any) => ({
-        id: msg.row_number ?? msg.id,
-        conversa_id: String(msg.conversa_id),
-        texto: msg.mensagem,
-        remetente: msg.autor,
-        horario: msg.horario
+      .map((msg, index) => ({
+
+        id: String(msg.id ?? index),
+
+        conversa_id: numero,
+
+        texto: msg.texto ?? "",
+
+        remetente: msg.remetente ?? "cliente",
+
+        horario: msg.horario ?? ""
+
       }))
-      .sort((a, b) => new Date(a.horario).getTime() - new Date(b.horario).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.horario).getTime() -
+          new Date(b.horario).getTime()
+      );
 
   },
 
-  // ENVIAR MENSAGEM
-  enviarMensagem: (
-    numero: string,
-    mensagem: string,
-    unidadeId: string
-  ) =>
-    fetchAPI("/responder", {
-      method: "POST",
-      body: JSON.stringify({
-        numero,
-        mensagem,
-        unidade_id: unidadeId,
-      }),
-    }),
+  /* ================================
+     ENVIAR MENSAGEM
+  ================================= */
 
-  // ALTERAR STATUS
-  alterarStatus: (
-    conversaId: string,
-    status: ConversationStatus,
-    atendenteId?: string
-  ) =>
-    fetchAPI("/alterar-status", {
+  enviarMensagem: async (
+    numero: string,
+    mensagem: string
+  ) => {
+
+    const telefone = String(numero || "")
+      .replace("@s.whatsapp.net", "")
+      .replace(/\D/g, "");
+
+    if (!telefone) throw new Error("Número inválido");
+
+    return fetchAPI("/responder", {
       method: "POST",
       body: JSON.stringify({
-        conversa_id: conversaId,
-        status,
-        atendente_id: atendenteId,
-      }),
-    }),
+        numero: telefone,
+        mensagem: mensagem
+      })
+    });
+
+  },
+
+  /* ================================
+     ALTERAR STATUS
+  ================================= */
+
+  alterarStatus: async (
+    conversaId: string,
+    status: ConversationStatus
+  ) => {
+
+    const numero = String(conversaId || "")
+      .replace("@s.whatsapp.net", "")
+      .replace(/\D/g, "");
+
+    if (!numero) throw new Error("Número inválido");
+
+    return fetchAPI("/alterar-status", {
+      method: "POST",
+      body: JSON.stringify({
+        numero: numero,
+        status: status
+      })
+    });
+
+  }
+
 };
 
-export const activeApi = api;
+export const api = activeApi;

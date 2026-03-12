@@ -11,8 +11,14 @@ interface ConversationListProps {
   sectorFilter: Sector | "all";
 }
 
+function limparNumero(numero: string) {
+  return String(numero || "")
+    .replace("@s.whatsapp.net", "")
+    .replace(/\D/g, "");
+}
+
 function formatarTelefone(numero: string) {
-  const n = numero.replace(/\D/g, "");
+  const n = limparNumero(numero);
 
   if (n.length === 13) {
     return `+${n.slice(0,2)} (${n.slice(2,4)}) ${n.slice(4,9)}-${n.slice(9)}`;
@@ -22,7 +28,7 @@ function formatarTelefone(numero: string) {
     return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
   }
 
-  return numero;
+  return numero || "Cliente";
 }
 
 export function ConversationList({
@@ -37,10 +43,11 @@ export function ConversationList({
 
   conversations.forEach((c) => {
 
-    const numero =
-      String(c.numero || c.conversa_id || c.id)
-      .replace("@s.whatsapp.net", "")
-      .replace(/\D/g, "");
+    const numero = limparNumero(
+      String(c.numero || c.conversa_id || "")
+    );
+
+    if (!numero) return;
 
     if (!uniqueMap.has(numero)) {
       uniqueMap.set(numero, {
@@ -49,6 +56,7 @@ export function ConversationList({
         conversa_id: numero
       });
     }
+
   });
 
   const unique = Array.from(uniqueMap.values());
@@ -72,14 +80,12 @@ export function ConversationList({
   return (
     <div className="flex-1 overflow-y-auto scrollbar-thin">
       <AnimatePresence>
+
         {filtered.map((conv) => {
 
-          const numeroRaw =
-            String(conv.numero || conv.conversa_id || conv.id);
-
-          const numero = numeroRaw
-            .replace("@s.whatsapp.net", "")
-            .replace(/\D/g, "");
+          const numero = limparNumero(
+            String(conv.numero || conv.conversa_id || "")
+          );
 
           const nome = formatarTelefone(numero);
 
@@ -94,7 +100,13 @@ export function ConversationList({
 
           const id = numero;
 
-          const iniciais = numero.slice(-2);
+          const iniciais = numero.slice(-2) || "CL";
+
+          const convNormalizada: Conversation = {
+            ...conv,
+            numero: numero,
+            conversa_id: numero
+          };
 
           return (
             <motion.button
@@ -103,12 +115,13 @@ export function ConversationList({
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              onClick={() => onSelect(conv)}
+              onClick={() => onSelect(convNormalizada)}
               className={cn(
                 "w-full text-left px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors",
                 selectedId === id && "bg-muted"
               )}
             >
+
               <div className="flex items-start gap-3">
 
                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -120,6 +133,7 @@ export function ConversationList({
                 <div className="flex-1 min-w-0">
 
                   <div className="flex items-center justify-between gap-2">
+
                     <span className="text-sm font-medium text-foreground">
                       {nome}
                     </span>
@@ -127,6 +141,7 @@ export function ConversationList({
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                       {horario}
                     </span>
+
                   </div>
 
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -134,17 +149,24 @@ export function ConversationList({
                   </p>
 
                   <div className="flex items-center gap-2 mt-1.5">
+
                     <StatusDot status={status} />
+
                     <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                       {setor}
                     </span>
+
                   </div>
 
                 </div>
+
               </div>
+
             </motion.button>
           );
+
         })}
+
       </AnimatePresence>
     </div>
   );

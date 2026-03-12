@@ -1,7 +1,7 @@
 export type ConversationStatus =
   | "bot"
   | "aguardando"
-  | "em_atendimento"
+  | "atendimento"
   | "finalizado";
 
 export type Sector =
@@ -14,19 +14,23 @@ export type Sector =
 
 export interface Conversation {
 
-  // legado frontend
+  /* legado frontend */
+
   id?: string;
   cliente_nome?: string;
   cliente_numero?: string;
   horario?: string;
 
-  // dados vindos do n8n
+  /* dados do sistema */
+
   conversa_id?: string;
   numero?: string;
+  telefone?: string;
   nome?: string;
-  ultima_atualizacao?: string;
 
   ultima_mensagem?: string;
+
+  ultima_atualizacao?: any;
 
   status: ConversationStatus;
 
@@ -35,14 +39,23 @@ export interface Conversation {
   unidade_id?: string;
 
   atendente_id?: string;
+
 }
 
 export interface Message {
-  id?: number;
+
+  id?: string;
+
   conversa_id: string;
+
+  telefone?: string;
+
   texto: string;
+
   remetente: "cliente" | "atendente" | "bot";
-  horario: string;
+
+  horario: any;
+
 }
 
 export interface Unit {

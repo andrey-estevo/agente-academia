@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listarConversas } from "./services/conversas";
+import { activeApi } from "./services/api";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,10 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+
+/* 🔥 FIREBASE REALTIME */
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "./lib/firebase";
 
 const queryClient = new QueryClient();
 
@@ -23,14 +27,43 @@ const App = () => {
   const [conversas, setConversas] = useState<any[]>([]);
 
   useEffect(() => {
-    listarConversas()
+
+    /* ===============================
+       FIREBASE REALTIME
+       =============================== */
+
+    const q = query(
+      collection(db, "conversas"),
+      orderBy("ultima_atualizacao", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+
+      const dados = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      console.log("🔥 Conversas Firebase:", dados);
+
+      setConversas(dados);
+
+    });
+
+    /* ===============================
+       API ATUAL (mantida para backup)
+       =============================== */
+
+    activeApi.getConversas()
       .then((data) => {
-        console.log("Conversas:", data);
-        setConversas(data);
+        console.log("Conversas API:", data);
       })
       .catch((err) => {
         console.error("Erro ao buscar conversas:", err);
       });
+
+    return () => unsubscribe();
+
   }, []);
 
   return (
