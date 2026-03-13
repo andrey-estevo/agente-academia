@@ -103,8 +103,9 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     try {
 
       await activeApi.enviarMensagem(
-        String(conversation.numero),
-        texto
+  String(conversation.numero),
+  texto,
+  user?.email?.split("@")[0] || "Atendente"
       );
 
       setInput("");

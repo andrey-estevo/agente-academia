@@ -113,26 +113,26 @@ export const activeApi = {
      ENVIAR MENSAGEM
   ================================= */
 
-  enviarMensagem: async (
-    numero: string,
-    mensagem: string
-  ) => {
+   enviarMensagem: async (
+  numero: string,
+  mensagem: string,
+  atendente?: string
+) => {
 
-    const telefone = String(numero || "")
-      .replace("@s.whatsapp.net", "")
-      .replace(/\D/g, "");
+  const telefone = String(numero || "")
+    .replace("@s.whatsapp.net", "")
+    .replace(/\D/g, "");
 
-    if (!telefone) throw new Error("Número inválido");
+  return fetchAPI("/responder", {
+    method: "POST",
+    body: JSON.stringify({
+      numero: telefone,
+      mensagem: mensagem,
+      atendente: atendente
+    })
+  });
 
-    return fetchAPI("/responder", {
-      method: "POST",
-      body: JSON.stringify({
-        numero: telefone,
-        mensagem: mensagem
-      })
-    });
-
-  },
+},
 
   /* ================================
      ALTERAR STATUS
