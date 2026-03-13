@@ -2,6 +2,7 @@ import { Conversation, ConversationStatus, Sector } from "@/types";
 import { StatusDot } from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -39,6 +40,8 @@ export function ConversationList({
   sectorFilter
 }: ConversationListProps) {
 
+  const jaTocouRef = useRef(false);
+
   const uniqueMap = new Map<string, Conversation>();
 
   conversations.forEach((c) => {
@@ -66,6 +69,29 @@ export function ConversationList({
     if (sectorFilter !== "all" && c.setor !== sectorFilter) return false;
     return true;
   });
+
+  /* SOM DE NOTIFICAÇÃO */
+
+  useEffect(() => {
+
+    const temAguardando = unique.some(
+      (c) => c.status === "aguardando"
+    );
+
+    if (temAguardando && !jaTocouRef.current) {
+
+      const audio = new Audio("/ting.mp3");
+      audio.play().catch(() => {});
+
+      jaTocouRef.current = true;
+
+    }
+
+    if (!temAguardando) {
+      jaTocouRef.current = false;
+    }
+
+  }, [unique]);
 
   if (filtered.length === 0) {
     return (
@@ -163,6 +189,7 @@ export function ConversationList({
               </div>
 
             </motion.button>
+
           );
 
         })}
