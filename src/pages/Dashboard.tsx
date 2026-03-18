@@ -15,7 +15,8 @@ import {
   CheckCircle,
   Bot,
   Menu,
-  X
+  X,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -194,27 +195,21 @@ const Dashboard = () => {
               <div className="grid grid-cols-2 gap-2">
 
                 <div className="bg-status-waiting/15 rounded-lg px-3 py-2 text-center">
-
                   <p className="text-lg font-bold text-status-waiting">
                     {counts.aguardando}
                   </p>
-
                   <p className="text-[10px] text-sidebar-foreground/60">
                     Aguardando
                   </p>
-
                 </div>
 
                 <div className="bg-status-attending/15 rounded-lg px-3 py-2 text-center">
-
                   <p className="text-lg font-bold text-status-attending">
                     {counts.atendimento}
                   </p>
-
                   <p className="text-[10px] text-sidebar-foreground/60">
                     Atendendo
                   </p>
-
                 </div>
 
               </div>
@@ -242,11 +237,9 @@ const Dashboard = () => {
                   </span>
 
                   {f.count !== undefined && f.count > 0 && (
-
                     <span className="text-xs bg-sidebar-muted px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                       {f.count}
                     </span>
-
                   )}
 
                 </button>
@@ -255,23 +248,28 @@ const Dashboard = () => {
 
             </div>
 
-            <div className="mt-auto px-3 py-3 border-t border-sidebar-border">
+            {/* 🔥 FOOTER COM ADMIN */}
+            <div className="mt-auto px-3 py-3 border-t border-sidebar-border space-y-2">
 
               <Button
-                variant="ghost"
+                variant="secondary"
+                className="w-full justify-start"
+                onClick={() => navigate("/admin")}
+              >
+                <Settings className="w-4 h-4 mr-2"/>
+                Admin
+              </Button>
+
+              <Button
+                variant="secondary"
                 className="w-full justify-start"
                 onClick={() => {
-
                   logout();
                   navigate("/");
-
                 }}
               >
-
                 <LogOut className="w-4 h-4 mr-2"/>
-
                 Sair
-
               </Button>
 
             </div>
@@ -289,14 +287,12 @@ const Dashboard = () => {
           <div className="px-4 py-3 border-b flex items-center gap-2">
 
             {!sidebarOpen && (
-
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <Menu className="w-5 h-5"/>
               </button>
-
             )}
 
             <h2 className="text-sm font-semibold flex-1">
@@ -304,11 +300,8 @@ const Dashboard = () => {
             </h2>
 
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-
               <RefreshCw className="w-3 h-3"/>
-
               {lastUpdate.toLocaleTimeString()}
-
             </div>
 
           </div>

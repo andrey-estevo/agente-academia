@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 /* 🔥 FIREBASE REALTIME */
@@ -16,6 +17,9 @@ import { db } from "./lib/firebase";
 
 const queryClient = new QueryClient();
 
+/* ===============================
+   PROTECTED ROUTE
+================================ */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) return <Navigate to="/" replace />;
@@ -23,14 +27,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-
   const [conversas, setConversas] = useState<any[]>([]);
 
   useEffect(() => {
-
     /* ===============================
        FIREBASE REALTIME
-       =============================== */
+    =============================== */
 
     const q = query(
       collection(db, "conversas"),
@@ -38,32 +40,29 @@ const App = () => {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-
       const dados = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       console.log("🔥 Conversas Firebase:", dados);
-
       setConversas(dados);
-
     });
 
     /* ===============================
-       API ATUAL (mantida para backup)
-       =============================== */
+       API BACKUP (OPCIONAL)
+    =============================== */
 
-    activeApi.getConversas()
+    activeApi
+      .getConversas()
       .then((data) => {
-        console.log("Conversas API:", data);
+        console.log("🌐 Conversas API:", data);
       })
       .catch((err) => {
-        console.error("Erro ao buscar conversas:", err);
+        console.error("Erro ao buscar API:", err);
       });
 
     return () => unsubscribe();
-
   }, []);
 
   return (
@@ -71,10 +70,15 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+
+              {/* LOGIN */}
               <Route path="/" element={<Login />} />
+
+              {/* DASHBOARD */}
               <Route
                 path="/dashboard"
                 element={
@@ -83,7 +87,20 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+
+              {/* ADMIN 🔥 */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* FALLBACK */}
               <Route path="*" element={<NotFound />} />
+
             </Routes>
           </AuthProvider>
         </BrowserRouter>
