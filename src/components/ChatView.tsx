@@ -36,7 +36,17 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const nome = String(conversation.nome || conversation.numero || "Cliente");
+  // 🔥 CORREÇÃO AQUI
+  const nomeValido =
+    conversation.nome &&
+    conversation.nome !== conversation.numero &&
+    conversation.nome !== "Aluno"
+      ? conversation.nome
+      : "Cliente";
+
+  const nome = String(nomeValido);
+
+  console.log("CONVERSATION:", conversation);
 
   /* FIREBASE REALTIME */
 
@@ -103,9 +113,9 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     try {
 
       await activeApi.enviarMensagem(
-  String(conversation.numero),
-  texto,
-  user?.email?.split("@")[0] || "Atendente"
+        String(conversation.numero),
+        texto,
+        user?.email?.split("@")[0] || "Atendente"
       );
 
       setInput("");

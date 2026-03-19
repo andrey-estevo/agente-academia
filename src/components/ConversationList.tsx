@@ -113,7 +113,15 @@ export function ConversationList({
             String(conv.numero || conv.conversa_id || "")
           );
 
-          const nome = formatarTelefone(numero);
+          // 🔥 CORREÇÃO AQUI
+          const nomeValido =
+            conv.nome &&
+            conv.nome !== numero &&
+            conv.nome !== "Aluno"
+              ? conv.nome
+              : formatarTelefone(numero);
+
+          const nome = nomeValido;
 
           const horario =
             conv.horario ||
