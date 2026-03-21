@@ -39,8 +39,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
   // 🔥 CORREÇÃO AQUI
   const nomeValido =
     conversation.nome &&
-    conversation.nome !== conversation.numero &&
-    conversation.nome !== "Aluno"
+      conversation.nome !== conversation.numero &&
+      conversation.nome !== "Aluno"
       ? conversation.nome
       : "Cliente";
 
@@ -198,7 +198,18 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
               {nome}
             </h2>
 
-            <StatusBadge status={conversation.status} size="xs" />
+            <span className={cn(
+              "text-[11px] px-2 py-0.5 rounded-full font-medium",
+              conversation.status === "atendimento" && "bg-green-100 text-green-700",
+              conversation.status === "aguardando" && "bg-yellow-100 text-yellow-700",
+              conversation.status === "bot" && "bg-blue-100 text-blue-700",
+              conversation.status === "finalizado" && "bg-gray-200 text-gray-600"
+            )}>
+              {conversation.status === "atendimento" && "🟢 Em atendimento"}
+              {conversation.status === "aguardando" && "🟡 Aguardando"}
+              {conversation.status === "bot" && "🔵 Bot"}
+              {conversation.status === "finalizado" && "⚪ Finalizado"}
+            </span>
 
           </div>
 
@@ -222,19 +233,19 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
             conversation.status === "bot" ||
             conversation.status === "finalizado") && (
 
-            <Button
-              size="sm"
-              className="bg-accent text-accent-foreground text-xs gap-1"
-              onClick={() => handleStatusChange("atendimento")}
-            >
+              <Button
+                size="sm"
+                className="bg-accent text-accent-foreground text-xs gap-1"
+                onClick={() => handleStatusChange("atendimento")}
+              >
 
-              <UserCheck className="w-3.5 h-3.5" />
+                <UserCheck className="w-3.5 h-3.5" />
 
-              Assumir
+                Assumir
 
-            </Button>
+              </Button>
 
-          )}
+            )}
 
           {conversation.status === "atendimento" && (
 
