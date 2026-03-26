@@ -251,6 +251,18 @@ const Dashboard = () => {
             {/* 🔥 FOOTER COM ADMIN */}
             <div className="mt-auto px-3 py-3 border-t border-sidebar-border space-y-2">
 
+              {/* 👤 BOTÃO USUÁRIOS */}
+              {user?.perfil === "admin" && (
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/admin/usuarios")}
+                >
+                  <Settings className="w-4 h-4 mr-2"/>
+                  Usuários
+                </Button>
+              )}
+
               <Button
                 variant="secondary"
                 className="w-full justify-start"

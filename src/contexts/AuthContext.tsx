@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { User } from '@/types';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -10,46 +13,84 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Mock users - replace with real auth later
-const MOCK_USERS: Record<string, User> = {
-  'atendente1@fitmax.com': {
-    id: 'u1', email: 'atendente1@fitmax.com', nome: 'Carla Mendes',
-    unidade_id: 'unidade-1', unidade_nome: 'FitMax Centro',
-  },
-  'atendente2@fitmax.com': {
-    id: 'u2', email: 'atendente2@fitmax.com', nome: 'Rafael Costa',
-    unidade_id: 'unidade-2', unidade_nome: 'FitMax Zona Sul',
-  },
-  'atendente3@fitmax.com': {
-    id: 'u3', email: 'atendente3@fitmax.com', nome: 'Julia Santos',
-    unidade_id: 'unidade-3', unidade_nome: 'FitMax Zona Norte',
-  },
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const stored = sessionStorage.getItem('wa_panel_user');
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = useCallback(async (email: string, _password: string): Promise<boolean> => {
-    // Mock auth - accept any password for known emails
-    const mockUser = MOCK_USERS[email.toLowerCase()];
-    if (mockUser) {
-      setUser(mockUser);
-      sessionStorage.setItem('wa_panel_user', JSON.stringify(mockUser));
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    try {
+      // 🔐 LOGIN FIREBASE
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // 🔎 BUSCAR DADOS NO FIRESTORE
+      const ref = doc(db, 'usuarios', firebaseUser.uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        console.log('❌ Usuário não encontrado no Firestore');
+        await signOut(auth);
+        return false;
+      }
+
+      const data = snap.data();
+
+      // 🚫 BLOQUEIA USUÁRIO INATIVO
+      if (data?.ativo === false) {
+        console.log('🚫 Usuário desativado');
+        await signOut(auth);
+        return false;
+      }
+
+      // ✅ USER COMPLETO (AGORA COM PERFIL)
+      const userData: User = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        nome: data?.nome || 'Usuário',
+        unidade_id: data?.unidade_id || '',
+        unidade_nome: data?.unidade_nome || '',
+        perfil: data?.perfil || 'atendente', // 🔥 IMPORTANTE
+        ativo: data?.ativo ?? true
+      };
+
+      setUser(userData);
+      sessionStorage.setItem('wa_panel_user', JSON.stringify(userData));
+
       return true;
+
+    } catch (error: any) {
+      console.log('🔥 ERRO LOGIN:', error.code);
+
+      if (error.code === 'auth/user-not-found') console.log('Usuário não existe');
+      if (error.code === 'auth/wrong-password') console.log('Senha incorreta');
+      if (error.code === 'auth/invalid-email') console.log('Email inválido');
+
+      return false;
     }
-    return false;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.log('Erro ao deslogar', e);
+    }
+
     setUser(null);
     sessionStorage.removeItem('wa_panel_user');
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

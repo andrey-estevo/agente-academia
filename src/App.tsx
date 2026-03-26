@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import AdminUsuarios from "./pages/AdminUsuarios"; // 🔥 ADICIONADO
 import NotFound from "./pages/NotFound";
 
 /* 🔥 FIREBASE REALTIME */
@@ -30,9 +31,6 @@ const App = () => {
   const [conversas, setConversas] = useState<any[]>([]);
 
   useEffect(() => {
-    /* ===============================
-       FIREBASE REALTIME
-    =============================== */
 
     const q = query(
       collection(db, "conversas"),
@@ -48,10 +46,6 @@ const App = () => {
       console.log("🔥 Conversas Firebase:", dados);
       setConversas(dados);
     });
-
-    /* ===============================
-       API BACKUP (OPCIONAL)
-    =============================== */
 
     activeApi
       .getConversas()
@@ -88,12 +82,22 @@ const App = () => {
                 }
               />
 
-              {/* ADMIN 🔥 */}
+              {/* ADMIN */}
               <Route
                 path="/admin"
                 element={
                   <ProtectedRoute>
                     <Admin />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* 🔥 NOVA ROTA USUÁRIOS */}
+              <Route
+                path="/admin/usuarios"
+                element={
+                  <ProtectedRoute>
+                    <AdminUsuarios />
                   </ProtectedRoute>
                 }
               />
