@@ -200,7 +200,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
             <span className={cn(
               "text-[11px] px-2 py-0.5 rounded-full font-medium",
-              conversation.status === "atendimento" && "bg-green-100 text-green-700",
+              conversation.status === "atendimento" && "bg-[#0B3CFF] text-white",
               conversation.status === "aguardando" && "bg-yellow-100 text-yellow-700",
               conversation.status === "bot" && "bg-blue-100 text-blue-700",
               conversation.status === "finalizado" && "bg-gray-200 text-gray-600"
@@ -266,7 +266,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
               <Button
                 size="sm"
                 variant="outline"
-                className="text-xs gap-1 text-destructive"
+                className="text-xs gap-1 text-red-500"
                 onClick={() => handleStatusChange("finalizado")}
               >
 
@@ -298,22 +298,18 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
                 "flex",
                 msg.remetente === "cliente" && "justify-start",
                 msg.remetente === "atendente" && "justify-end",
-                msg.remetente === "bot" && "justify-center"
+                (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
               )}
             >
 
               <div
                 className={cn(
                   "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                  msg.remetente === "cliente" && "bg-wa-bubble-in",
-                  msg.remetente === "atendente" && "bg-wa-bubble-out",
-                  msg.remetente === "bot" && "bg-wa-bubble-bot text-xs italic"
+                  msg.remetente === "cliente" && "bg-gray-200 text-black",
+                  (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-[#0B3CFF] text-white"
                 )}
               >
 
-                {msg.remetente === "bot" && (
-                  <Bot className="w-3 h-3 inline-block mr-1" />
-                )}
 
                 {msg.texto}
 
@@ -353,7 +349,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
           <Button
             type="submit"
             size="icon"
-            className="bg-accent text-accent-foreground"
+            className="bg-[#0B3CFF] text-white"
             disabled={sending || !input.trim()}
           >
 

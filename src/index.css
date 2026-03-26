@@ -15,7 +15,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 10%;
 
-    --primary: 220 70% 45%;
+    /* 🔵 AZUL SKYFIT */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 15% 93%;
@@ -24,72 +25,89 @@
     --muted: 210 15% 95%;
     --muted-foreground: 215 15% 50%;
 
-    --accent: 152 55% 42%;
+    /* 🔵 ACCENT = AZUL (ANTES ERA VERDE) */
+    --accent: 221 83% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 55%;
+    /* 🔴 VERMELHO SKYFIT */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 20% 90%;
     --input: 214 20% 90%;
-    --ring: 220 70% 45%;
+    --ring: 221 83% 53%;
 
     --radius: 0.625rem;
 
-    /* Sidebar - dark navy */
-    --sidebar-background: 222 47% 11%;
+    /* 🔥 SIDEBAR SKYFIT */
+    --sidebar-background: 222 47% 11%; /* #0F172A */
     --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 152 55% 50%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 40% 18%;
     --sidebar-accent-foreground: 210 20% 92%;
     --sidebar-border: 222 30% 20%;
-    --sidebar-ring: 152 55% 50%;
+    --sidebar-ring: 221 83% 53%;
     --sidebar-muted: 222 30% 25%;
 
-    /* Status colors */
-    --status-waiting: 0 72% 55%;
-    --status-attending: 45 90% 55%;
-    --status-finished: 215 15% 75%;
-    --status-bot: 152 55% 50%;
+    /* 🔥 STATUS MELHORADOS */
+    --status-waiting: 45 90% 55%;     /* amarelo */
+    --status-attending: 221 83% 53%;  /* azul */
+    --status-finished: 215 15% 75%;   /* cinza */
+    --status-bot: 262 83% 58%;        /* roxo */
 
-    /* WhatsApp colors */
+    /* 💬 CHAT SKYFIT */
     --wa-green: 152 55% 42%;
     --wa-green-light: 152 40% 95%;
-    --wa-bubble-out: 152 40% 92%;
-    --wa-bubble-in: 210 15% 95%;
-    --wa-bubble-bot: 220 60% 95%;
+
+    /* 🔥 BOLHAS NOVAS */
+    --wa-bubble-out: 221 83% 53%;   /* azul (bot/atendente) */
+    --wa-bubble-in: 210 15% 95%;    /* cliente */
+    --wa-bubble-bot: 221 60% 95%;
   }
 
   .dark {
     --background: 222 47% 6%;
     --foreground: 210 20% 92%;
+
     --card: 222 47% 9%;
     --card-foreground: 210 20% 92%;
+
     --popover: 222 47% 9%;
     --popover-foreground: 210 20% 92%;
-    --primary: 220 70% 55%;
+
+    --primary: 221 83% 60%;
     --primary-foreground: 0 0% 100%;
+
     --secondary: 222 30% 18%;
     --secondary-foreground: 210 20% 85%;
+
     --muted: 222 30% 15%;
     --muted-foreground: 215 15% 55%;
-    --accent: 152 55% 42%;
+
+    --accent: 221 83% 60%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 40%;
+
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
+
     --border: 222 30% 20%;
     --input: 222 30% 20%;
-    --ring: 220 70% 55%;
+    --ring: 221 83% 60%;
+
     --sidebar-background: 222 47% 6%;
     --sidebar-foreground: 210 20% 80%;
-    --sidebar-primary: 152 55% 50%;
+    --sidebar-primary: 221 83% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 40% 14%;
     --sidebar-accent-foreground: 210 20% 88%;
     --sidebar-border: 222 30% 15%;
-    --sidebar-ring: 152 55% 50%;
+    --sidebar-ring: 221 83% 60%;
     --sidebar-muted: 222 30% 20%;
+
+    /* chat dark */
+    --wa-bubble-out: 221 83% 60%;
+    --wa-bubble-in: 222 30% 18%;
   }
 }
 
@@ -97,6 +115,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
@@ -108,12 +127,15 @@
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) transparent;
   }
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 5px;
   }
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(var(--border));
     border-radius: 20px;
