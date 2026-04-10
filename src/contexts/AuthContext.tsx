@@ -44,14 +44,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      // ✅ USER COMPLETO (AGORA COM PERFIL)
+      // 🚨 BLOQUEIA SE NÃO TIVER UNIDADE (CRÍTICO MULTI-UNIDADE)
+      if (!data?.unidade_id) {
+        console.log('🚫 Usuário sem unidade vinculada');
+        await signOut(auth);
+        return false;
+      }
+
+      // ✅ USER COMPLETO
       const userData: User = {
         id: firebaseUser.uid,
         email: firebaseUser.email || '',
         nome: data?.nome || 'Usuário',
-        unidade_id: data?.unidade_id || '',
+        unidade_id: data.unidade_id, // 🔥 agora garantido
         unidade_nome: data?.unidade_nome || '',
-        perfil: data?.perfil || 'atendente', // 🔥 IMPORTANTE
+        perfil: data?.perfil || 'atendente',
         ativo: data?.ativo ?? true
       };
 

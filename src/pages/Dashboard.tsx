@@ -45,6 +45,7 @@ const Dashboard = () => {
       return;
     }
 
+    // 🔥 MULTI-UNIDADE
     const unsubscribe = ouvirConversas((data) => {
 
       setConversations(data);
@@ -52,16 +53,13 @@ const Dashboard = () => {
       setLoading(false);
 
       if (selectedConv) {
-
         const updated = data.find(
           (c) => c.conversa_id === selectedConv.conversa_id
         );
-
         if (updated) setSelectedConv(updated);
-
       }
 
-    });
+    }, user.unidade_id);
 
     return () => unsubscribe();
 
@@ -248,10 +246,8 @@ const Dashboard = () => {
 
             </div>
 
-            {/* 🔥 FOOTER COM ADMIN */}
             <div className="mt-auto px-3 py-3 border-t border-sidebar-border space-y-2">
 
-              {/* 👤 BOTÃO USUÁRIOS */}
               {user?.perfil === "admin" && (
                 <Button
                   variant="secondary"

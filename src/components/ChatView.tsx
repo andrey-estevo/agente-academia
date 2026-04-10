@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Conversation, Message, ConversationStatus } from "@/types";
-import { StatusBadge } from "@/components/StatusBadge";
 import { activeApi } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,16 +8,7 @@ import { Send, UserCheck, XCircle, Bot, Phone, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot
-} from "firebase/firestore";
-
-import { db } from "@/lib/firebase";
+import { ouvirMensagens } from "@/services/firebaseMensagens";
 
 interface ChatViewProps {
   conversation: Conversation;
@@ -36,69 +26,35 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 🔥 CORREÇÃO AQUI
+  // 🔥 FALLBACK DE STATUS (ANTI BUG)
+  const status: ConversationStatus = (conversation.status as ConversationStatus) || "bot";
+
   const nomeValido =
     conversation.nome &&
-      conversation.nome !== conversation.numero &&
-      conversation.nome !== "Aluno"
+    conversation.nome !== conversation.numero &&
+    conversation.nome !== "Aluno"
       ? conversation.nome
       : "Cliente";
 
   const nome = String(nomeValido);
 
-  console.log("CONVERSATION:", conversation);
-
-  /* FIREBASE REALTIME */
-
   useEffect(() => {
 
     if (!conversation?.numero) return;
 
-    const q = query(
-      collection(db, "mensagens"),
-      where("conversa_id", "==", String(conversation.numero)),
-      orderBy("horario", "asc")
+    const unsubscribe = ouvirMensagens(
+      String(conversation.numero),
+      setMessages,
+      user?.unidade_id
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-
-      const msgs: Message[] = snapshot.docs.map((doc) => {
-
-        const data: any = doc.data();
-
-        let horario = "";
-
-        if (data.horario?.seconds) {
-          horario = new Date(data.horario.seconds * 1000).toISOString();
-        } else {
-          horario = data.horario || "";
-        }
-
-        return {
-          id: doc.id,
-          conversa_id: data.conversa_id,
-          texto: data.texto,
-          remetente: data.remetente,
-          horario
-        };
-
-      });
-
-      setMessages(msgs);
-
-    });
 
     return () => unsubscribe();
 
-  }, [conversation.numero]);
-
-  /* SCROLL */
+  }, [conversation.numero, user?.unidade_id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  /* ENVIAR */
 
   async function handleSend(e: React.FormEvent) {
 
@@ -115,7 +71,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       await activeApi.enviarMensagem(
         String(conversation.numero),
         texto,
-        user?.email?.split("@")[0] || "Atendente"
+        user?.email?.split("@")[0] || "Atendente",
+        user?.unidade_id
       );
 
       setInput("");
@@ -123,7 +80,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     } catch (err) {
 
       toast.error("Erro ao enviar mensagem");
-
       console.error(err);
 
     }
@@ -132,15 +88,14 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
   }
 
-  /* STATUS */
-
   async function handleStatusChange(status: ConversationStatus) {
 
     try {
 
       await activeApi.alterarStatus(
         conversation.numero,
-        status
+        status,
+        user?.unidade_id
       );
 
       onStatusChange(conversation.numero, status);
@@ -153,6 +108,19 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       };
 
       toast.success(labels[status]);
+
+      // 🔥 força atualização
+      try {
+        const updatedMessages = await activeApi.getMensagens(
+          conversation.numero,
+          user?.unidade_id
+        );
+        if (Array.isArray(updatedMessages) && updatedMessages.length > 0) {
+          setMessages(updatedMessages);
+        }
+      } catch (e) {
+        console.error("Erro ao atualizar mensagens", e);
+      }
 
     } catch {
 
@@ -174,13 +142,9 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     <div className="flex flex-col h-full">
 
       {/* HEADER */}
-
       <div className="border-b px-4 py-3 bg-card flex items-center gap-3">
 
-        <button
-          onClick={onBack}
-          className="md:hidden text-muted-foreground hover:text-foreground"
-        >
+        <button onClick={onBack} className="md:hidden text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
         </button>
 
@@ -198,57 +162,46 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
               {nome}
             </h2>
 
+            {/* 🔥 STATUS CORRIGIDO */}
             <span className={cn(
               "text-[11px] px-2 py-0.5 rounded-full font-medium",
-              conversation.status === "atendimento" && "bg-[#0B3CFF] text-white",
-              conversation.status === "aguardando" && "bg-yellow-100 text-yellow-700",
-              conversation.status === "bot" && "bg-blue-100 text-blue-700",
-              conversation.status === "finalizado" && "bg-gray-200 text-gray-600"
+              status === "atendimento" && "bg-[#0B3CFF] text-white",
+              status === "aguardando" && "bg-yellow-100 text-yellow-700",
+              status === "bot" && "bg-blue-100 text-blue-700",
+              status === "finalizado" && "bg-gray-200 text-gray-600"
             )}>
-              {conversation.status === "atendimento" && "🟢 Em atendimento"}
-              {conversation.status === "aguardando" && "🟡 Aguardando"}
-              {conversation.status === "bot" && "🔵 Bot"}
-              {conversation.status === "finalizado" && "⚪ Finalizado"}
+              {status === "atendimento" && "🟢 Em atendimento"}
+              {status === "aguardando" && "🟡 Aguardando"}
+              {status === "bot" && "🔵 Bot"}
+              {status === "finalizado" && "⚪ Finalizado"}
             </span>
 
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-
             <Phone className="w-3 h-3" />
-
             <span>{conversation.numero}</span>
-
             <span>•</span>
-
             <span>{conversation.setor}</span>
-
           </div>
 
         </div>
 
+        {/* 🔥 BOTÕES CORRIGIDOS */}
         <div className="flex items-center gap-2">
 
-          {(conversation.status === "aguardando" ||
-            conversation.status === "bot" ||
-            conversation.status === "finalizado") && (
+          {status !== "atendimento" && (
+            <Button
+              size="sm"
+              className="bg-accent text-accent-foreground text-xs gap-1"
+              onClick={() => handleStatusChange("atendimento")}
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              Assumir
+            </Button>
+          )}
 
-              <Button
-                size="sm"
-                className="bg-accent text-accent-foreground text-xs gap-1"
-                onClick={() => handleStatusChange("atendimento")}
-              >
-
-                <UserCheck className="w-3.5 h-3.5" />
-
-                Assumir
-
-              </Button>
-
-            )}
-
-          {conversation.status === "atendimento" && (
-
+          {status === "atendimento" && (
             <>
               <Button
                 size="sm"
@@ -256,11 +209,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
                 className="text-xs gap-1"
                 onClick={() => handleStatusChange("bot")}
               >
-
                 <Bot className="w-3.5 h-3.5" />
-
                 Bot
-
               </Button>
 
               <Button
@@ -269,11 +219,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
                 className="text-xs gap-1 text-red-500"
                 onClick={() => handleStatusChange("finalizado")}
               >
-
                 <XCircle className="w-3.5 h-3.5" />
-
                 Finalizar
-
               </Button>
             </>
           )}
@@ -283,45 +230,51 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       </div>
 
       {/* MENSAGENS */}
-
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/30">
 
         <AnimatePresence>
 
-          {messages.map((msg) => (
+          {messages.map((msg, index) => {
 
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "flex",
-                msg.remetente === "cliente" && "justify-start",
-                msg.remetente === "atendente" && "justify-end",
-                (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
-              )}
-            >
+            const dataValida =
+              msg.horario && !isNaN(new Date(msg.horario).getTime());
 
-              <div
+            return (
+              <motion.div
+                key={msg.id ?? `${msg.horario || ""}-${index}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
                 className={cn(
-                  "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                  msg.remetente === "cliente" && "bg-gray-200 text-black",
-                  (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-[#0B3CFF] text-white"
+                  "flex",
+                  msg.remetente === "cliente" && "justify-start",
+                  (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
                 )}
               >
 
+                <div
+                  className={cn(
+                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
+                    msg.remetente === "cliente" && "bg-gray-200 text-black",
+                    (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-[#0B3CFF] text-white"
+                  )}
+                >
 
-                {msg.texto}
+                  {msg.texto}
 
-                <span className="block text-[10px] text-muted-foreground mt-1 text-right">
-                  {msg.horario}
-                </span>
+                  <span className="block text-[10px] text-muted-foreground mt-1 text-right">
+                    {dataValida
+                      ? new Date(msg.horario!).toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })
+                      : ""}
+                  </span>
 
-              </div>
+                </div>
 
-            </motion.div>
-
-          ))}
+              </motion.div>
+            );
+          })}
 
         </AnimatePresence>
 
@@ -330,13 +283,9 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       </div>
 
       {/* INPUT */}
+      {status === "atendimento" && (
 
-      {conversation.status === "atendimento" && (
-
-        <form
-          onSubmit={handleSend}
-          className="border-t px-4 py-3 bg-card flex items-center gap-2"
-        >
+        <form onSubmit={handleSend} className="border-t px-4 py-3 bg-card flex items-center gap-2">
 
           <Input
             value={input}
@@ -352,9 +301,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
             className="bg-[#0B3CFF] text-white"
             disabled={sending || !input.trim()}
           >
-
             <Send className="w-4 h-4" />
-
           </Button>
 
         </form>

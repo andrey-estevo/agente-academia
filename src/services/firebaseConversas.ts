@@ -2,10 +2,18 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Conversation } from "@/types";
 
-export function ouvirConversas(callback: (data: Conversation[]) => void) {
+export function ouvirConversas(
+  callback: (data: Conversation[]) => void,
+  unidadeId?: string
+) {
+
+  // 🔥 DEFINE COLLECTION (MULTI OU ANTIGO)
+  const ref = unidadeId
+    ? collection(db, "unidades", unidadeId, "conversas")
+    : collection(db, "conversas");
 
   const q = query(
-    collection(db, "conversas"),
+    ref,
     orderBy("ultima_atualizacao", "desc")
   );
 
@@ -30,7 +38,7 @@ export function ouvirConversas(callback: (data: Conversation[]) => void) {
         ultima_atualizacao: ultimaAtualizacao,
         status: d.status || "bot",
         setor: d.setor || "geral",
-        unidade_id: d.unidade_id || ""
+        unidade_id: unidadeId || d.unidade_id || ""
       };
 
     });
