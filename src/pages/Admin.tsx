@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getPlanos, updatePlano } from "@/services/firebasePlanos";
 import { getHorarios, updateHorario } from "@/services/firebaseHorarios";
 
@@ -8,8 +9,11 @@ import { Button } from "@/components/ui/button";
 
 export default function Admin() {
 
+  const navigate = useNavigate();
+
   const [planos, setPlanos] = useState<any[]>([]);
   const [horarios, setHorarios] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -36,34 +40,66 @@ export default function Admin() {
   }
 
   async function salvarTudo() {
+    try {
+      setLoading(true);
 
-    // salvar planos
-    for (const plano of planos) {
-      await updatePlano(plano.id, {
-        nome: plano.nome,
-        preco: Number(plano.preco),
-      });
+      for (const plano of planos) {
+        await updatePlano(plano.id, {
+          nome: plano.nome,
+          preco: Number(plano.preco),
+        });
+      }
+
+      for (const h of horarios) {
+        await updateHorario(h.id, {
+          dia: h.dia,
+          abre: h.abre,
+          fecha: h.fecha,
+          ativo: h.ativo ?? true
+        });
+      }
+
+      alert("Tudo salvo 🚀");
+
+    } catch {
+      alert("Erro ao salvar ❌");
+    } finally {
+      setLoading(false);
     }
-
-    // salvar horários
-    for (const h of horarios) {
-      await updateHorario(h.id, {
-        dia: h.dia,
-        abre: h.abre,
-        fecha: h.fecha,
-        ativo: h.ativo ?? true
-      });
-    }
-
-    alert("Tudo salvo 🚀");
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
 
-      <h1 className="text-2xl font-bold">
-        Painel Admin 💪
-      </h1>
+      {/* 🔥 HEADER */}
+      <div className="flex items-center justify-between">
+
+        <div>
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-2 text-sm text-gray-500 hover:text-black"
+          >
+            ← Voltar
+          </button>
+
+          <h1 className="text-2xl font-bold">
+            Painel Admin 💪
+          </h1>
+
+          <p className="text-sm text-gray-500">
+            Gerencie planos e horários da unidade
+          </p>
+        </div>
+
+        <Button
+          onClick={salvarTudo}
+          disabled={loading}
+          className="bg-[#0B3CFF] text-white"
+        >
+          {loading ? "Salvando..." : "Salvar Tudo"}
+        </Button>
+
+      </div>
 
       {/* PLANOS */}
       <Card>
@@ -74,9 +110,10 @@ export default function Admin() {
         <CardContent className="space-y-4">
 
           {planos.map((p, i) => (
-            <div key={p.id} className="flex gap-3">
+            <div key={p.id} className="grid grid-cols-2 gap-3">
 
               <Input
+                placeholder="Nome do plano"
                 value={p.nome}
                 onChange={(e) =>
                   handlePlanoChange(i, "nome", e.target.value)
@@ -85,6 +122,7 @@ export default function Admin() {
 
               <Input
                 type="number"
+                placeholder="Preço"
                 value={p.preco}
                 onChange={(e) =>
                   handlePlanoChange(i, "preco", e.target.value)
@@ -106,9 +144,10 @@ export default function Admin() {
         <CardContent className="space-y-4">
 
           {horarios.map((h, i) => (
-            <div key={h.id} className="flex gap-3 items-center">
+            <div key={h.id} className="grid grid-cols-4 gap-3 items-center">
 
               <Input
+                placeholder="Dia"
                 value={h.dia}
                 onChange={(e) =>
                   handleHorarioChange(i, "dia", e.target.value)
@@ -116,6 +155,7 @@ export default function Admin() {
               />
 
               <Input
+                placeholder="Abertura"
                 value={h.abre}
                 onChange={(e) =>
                   handleHorarioChange(i, "abre", e.target.value)
@@ -123,6 +163,7 @@ export default function Admin() {
               />
 
               <Input
+                placeholder="Fechamento"
                 value={h.fecha}
                 onChange={(e) =>
                   handleHorarioChange(i, "fecha", e.target.value)
@@ -145,10 +186,6 @@ export default function Admin() {
 
         </CardContent>
       </Card>
-
-      <Button onClick={salvarTudo} className="w-full">
-        Salvar tudo
-      </Button>
 
     </div>
   );

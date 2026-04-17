@@ -32,6 +32,27 @@ function formatarTelefone(numero: string) {
   return numero || "Cliente";
 }
 
+// 🔥 NOVA FUNÇÃO DE DATA
+function formatarData(dataIso?: string) {
+  if (!dataIso) return "--";
+
+  const data = new Date(dataIso);
+
+  if (isNaN(data.getTime())) return "--";
+
+  const dia = data.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit"
+  });
+
+  const hora = data.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  return `${dia} • ${hora}`;
+}
+
 export function ConversationList({
   conversations,
   selectedId,
@@ -113,7 +134,6 @@ export function ConversationList({
             String(conv.numero || conv.conversa_id || "")
           );
 
-          // 🔥 CORREÇÃO AQUI
           const nomeValido =
             conv.nome &&
             conv.nome !== numero &&
@@ -123,17 +143,14 @@ export function ConversationList({
 
           const nome = nomeValido;
 
-          const horario =
-            conv.horario ||
-            conv.ultima_atualizacao ||
-            "--";
+          // 🔥 AQUI FOI CORRIGIDO
+          const horario = formatarData(
+            conv.ultima_atualizacao
+          );
 
           const status = conv.status || "aguardando";
-
           const setor = conv.setor || "geral";
-
           const id = numero;
-
           const iniciais = numero.slice(-2) || "CL";
 
           const convNormalizada: Conversation = {

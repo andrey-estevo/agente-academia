@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
 export default function AdminUsuarios() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     nome: "",
@@ -17,8 +17,17 @@ export default function AdminUsuarios() {
 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [unidades, setUnidades] = useState<any[]>([]);
 
-  // 🔒 PROTEÇÃO: só admin acessa
+  // 🔥 busca unidades automático
+  useEffect(() => {
+    fetch("https://noisygrasshopper-n8n.cloudfy.live/webhook/unidades")
+      .then(res => res.json())
+      .then(data => setUnidades(data))
+      .catch(() => setUnidades([]));
+  }, []);
+
+  // 🔒 PROTEÇÃO
   if (user?.perfil !== "admin") {
     return <Navigate to="/" />;
   }
@@ -79,9 +88,19 @@ export default function AdminUsuarios() {
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto text-white">
+    <div className="p-6 max-w-xl mx-auto text-black">
 
-      <h1 className="text-2xl font-bold mb-6">👤 Criar Usuário</h1>
+      {/* 🔥 BOTÃO VOLTAR */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm"
+      >
+        ← Voltar
+      </button>
+
+      <h1 className="text-2xl font-bold mb-6">
+        👤 Criar Usuário
+      </h1>
 
       <form onSubmit={criarUsuario} className="space-y-4">
 
@@ -124,22 +143,29 @@ export default function AdminUsuarios() {
           <option value="admin">Admin</option>
         </select>
 
-        <Input
-          placeholder="Unidade ID"
+        <select
           name="unidade_id"
           value={form.unidade_id}
           onChange={handleChange}
           required
-          className="bg-zinc-900 text-white border border-zinc-700 placeholder:text-zinc-400"
-        />
+          className="w-full p-3 rounded bg-zinc-900 text-white border border-zinc-700"
+        >
+          <option value="">Selecione a unidade</option>
 
-        <Button
+          {unidades.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.nome}
+            </option>
+          ))}
+        </select>
+
+        <button
           type="submit"
           disabled={loading}
-          className="w-full"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded font-semibold"
         >
           {loading ? "Criando usuário..." : "Criar Usuário"}
-        </Button>
+        </button>
 
         {msg && (
           <p className="text-sm text-center mt-2">
