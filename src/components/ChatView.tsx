@@ -26,7 +26,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 🔥 FALLBACK DE STATUS (ANTI BUG)
   const status: ConversationStatus = (conversation.status as ConversationStatus) || "bot";
 
   const nomeValido =
@@ -39,7 +38,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
   const nome = String(nomeValido);
 
   useEffect(() => {
-
     if (!conversation?.numero) return;
 
     const unsubscribe = ouvirMensagens(
@@ -49,7 +47,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     );
 
     return () => unsubscribe();
-
   }, [conversation.numero, user?.unidade_id]);
 
   useEffect(() => {
@@ -57,7 +54,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
   }, [messages]);
 
   async function handleSend(e: React.FormEvent) {
-
     e.preventDefault();
 
     if (!input.trim()) return;
@@ -67,7 +63,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     setSending(true);
 
     try {
-
       await activeApi.enviarMensagem(
         String(conversation.numero),
         texto,
@@ -76,22 +71,16 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       );
 
       setInput("");
-
     } catch (err) {
-
       toast.error("Erro ao enviar mensagem");
       console.error(err);
-
     }
 
     setSending(false);
-
   }
 
   async function handleStatusChange(status: ConversationStatus) {
-
     try {
-
       await activeApi.alterarStatus(
         conversation.numero,
         status,
@@ -109,7 +98,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
       toast.success(labels[status]);
 
-      // 🔥 força atualização
       try {
         const updatedMessages = await activeApi.getMensagens(
           conversation.numero,
@@ -123,11 +111,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       }
 
     } catch {
-
       toast.error("Erro ao alterar status");
-
     }
-
   }
 
   const iniciais = nome
@@ -138,11 +123,10 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     .toUpperCase();
 
   return (
-
     <div className="flex flex-col h-full">
 
       {/* HEADER */}
-      <div className="border-b px-4 py-3 bg-card flex items-center gap-3">
+      <div className="border-b px-4 h-[72px] bg-card flex items-center gap-3">
 
         <button onClick={onBack} className="md:hidden text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
@@ -162,7 +146,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
               {nome}
             </h2>
 
-            {/* 🔥 STATUS CORRIGIDO */}
             <span className={cn(
               "text-[11px] px-2 py-0.5 rounded-full font-medium",
               status === "atendimento" && "bg-[#0B3CFF] text-white",
@@ -187,7 +170,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
         </div>
 
-        {/* 🔥 BOTÕES CORRIGIDOS */}
         <div className="flex items-center gap-2">
 
           {status !== "atendimento" && (
@@ -230,55 +212,62 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       </div>
 
       {/* MENSAGENS */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/30">
+      <div className="flex-1 overflow-y-auto p-4 bg-[#0F1729] relative">
 
-        <AnimatePresence>
+        {/* FUNDO COM LOGO */}
+        <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-30 pointer-events-none"></div>
 
-          {messages.map((msg, index) => {
+        <div className="relative z-10 space-y-3">
 
-            const dataValida =
-              msg.horario && !isNaN(new Date(msg.horario).getTime());
+          <AnimatePresence>
 
-            return (
-              <motion.div
-                key={msg.id ?? `${msg.horario || ""}-${index}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={cn(
-                  "flex",
-                  msg.remetente === "cliente" && "justify-start",
-                  (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
-                )}
-              >
+            {messages.map((msg, index) => {
 
-                <div
+              const dataValida =
+                msg.horario && !isNaN(new Date(msg.horario).getTime());
+
+              return (
+                <motion.div
+                  key={msg.id ?? `${msg.horario || ""}-${index}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                    msg.remetente === "cliente" && "bg-gray-200 text-black",
-                    (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-[#0B3CFF] text-white"
+                    "flex",
+                    msg.remetente === "cliente" && "justify-start",
+                    (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
                   )}
                 >
 
-                  {msg.texto}
+                  <div
+                    className={cn(
+                      "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
+                      msg.remetente === "cliente" && "bg-gray-200 text-black",
+                      (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-gray-400 text-white"
+                    )}
+                  >
 
-                  <span className="block text-[10px] text-muted-foreground mt-1 text-right">
-                    {dataValida
-                      ? new Date(msg.horario!).toLocaleTimeString("pt-BR", {
-                          hour: "2-digit",
-                          minute: "2-digit"
-                        })
-                      : ""}
-                  </span>
+                    {msg.texto}
 
-                </div>
+                    <span className="block text-[10px] text-muted-foreground mt-1 text-right">
+                      {dataValida
+                        ? new Date(msg.horario!).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })
+                        : ""}
+                    </span>
 
-              </motion.div>
-            );
-          })}
+                  </div>
 
-        </AnimatePresence>
+                </motion.div>
+              );
+            })}
 
-        <div ref={messagesEndRef} />
+          </AnimatePresence>
+
+          <div ref={messagesEndRef} />
+
+        </div>
 
       </div>
 
@@ -309,7 +298,5 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       )}
 
     </div>
-
   );
-
 }

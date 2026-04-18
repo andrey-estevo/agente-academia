@@ -156,7 +156,7 @@ const Dashboard = () => {
             className="bg-sidebar flex flex-col h-full border-r border-sidebar-border overflow-hidden flex-shrink-0"
           >
 
-            <div className="px-4 py-4 border-b border-sidebar-border">
+            <div className="px-4 h-[72px] border-b border-white bg-white flex items-center">
 
               <div className="flex items-center justify-between">
 
@@ -167,7 +167,7 @@ const Dashboard = () => {
                   </div>
 
                   <div>
-                    <h1 className="text-sm font-bold text-sidebar-foreground">
+                    <h1 className="text-sm font-bold text-gray-800">
                       Atendimento
                     </h1>
 
@@ -292,7 +292,7 @@ const Dashboard = () => {
 
         <div className="w-full md:w-[360px] border-r flex flex-col bg-card">
 
-          <div className="px-4 py-3 border-b flex items-center gap-2">
+          <div className="px-4 h-[72px] border-b flex items-center gap-2">
 
             {!sidebarOpen && (
               <button

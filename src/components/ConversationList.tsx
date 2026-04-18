@@ -32,7 +32,7 @@ function formatarTelefone(numero: string) {
   return numero || "Cliente";
 }
 
-// 🔥 NOVA FUNÇÃO DE DATA
+// 🔥 FUNÇÃO DE DATA
 function formatarData(dataIso?: string) {
   if (!dataIso) return "--";
 
@@ -66,7 +66,6 @@ export function ConversationList({
   const uniqueMap = new Map<string, Conversation>();
 
   conversations.forEach((c) => {
-
     const numero = limparNumero(
       String(c.numero || c.conversa_id || "")
     );
@@ -80,7 +79,6 @@ export function ConversationList({
         conversa_id: numero
       });
     }
-
   });
 
   const unique = Array.from(uniqueMap.values());
@@ -91,21 +89,16 @@ export function ConversationList({
     return true;
   });
 
-  /* SOM DE NOTIFICAÇÃO */
-
+  /* 🔊 SOM DE NOTIFICAÇÃO */
   useEffect(() => {
-
     const temAguardando = unique.some(
       (c) => c.status === "aguardando"
     );
 
     if (temAguardando && !jaTocouRef.current) {
-
       const audio = new Audio("/ting.mp3");
       audio.play().catch(() => {});
-
       jaTocouRef.current = true;
-
     }
 
     if (!temAguardando) {
@@ -116,7 +109,7 @@ export function ConversationList({
 
   if (filtered.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#0F1729]">
         <p className="text-sm text-muted-foreground">
           Nenhuma conversa encontrada
         </p>
@@ -125,7 +118,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto scrollbar-thin">
+    <div className="flex-1 overflow-y-auto scrollbar-thin bg-[#0F1729]">
       <AnimatePresence>
 
         {filtered.map((conv) => {
@@ -143,7 +136,6 @@ export function ConversationList({
 
           const nome = nomeValido;
 
-          // 🔥 AQUI FOI CORRIGIDO
           const horario = formatarData(
             conv.ultima_atualizacao
           );
@@ -168,8 +160,9 @@ export function ConversationList({
               exit={{ opacity: 0, x: -10 }}
               onClick={() => onSelect(convNormalizada)}
               className={cn(
-                "w-full text-left px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors",
-                selectedId === id && "bg-muted"
+                "w-full text-left px-4 py-3 border-b border-white/5 transition-colors",
+                "hover:bg-[#1F517F]/20",
+                selectedId === id && "bg-[#1F517F]/30"
               )}
             >
 
@@ -185,7 +178,7 @@ export function ConversationList({
 
                   <div className="flex items-center justify-between gap-2">
 
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="text-sm font-medium text-white">
                       {nome}
                     </span>
 
