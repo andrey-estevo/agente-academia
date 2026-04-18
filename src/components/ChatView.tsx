@@ -1,22 +1,41 @@
 import { useState, useEffect, useRef } from "react";
+
 import { Conversation, Message, ConversationStatus } from "@/types";
-import { activeApi } from "@/services/api";
+
+import { ouvirMensagens } from "@/services/firebaseMensagens";
 import { useAuth } from "@/contexts/AuthContext";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, UserCheck, XCircle, Bot, Phone, ArrowLeft } from "lucide-react";
+
+import {
+  Send,
+  UserCheck,
+  XCircle,
+  Bot,
+  Phone,
+  ArrowLeft,
+  Menu
+} from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ouvirMensagens } from "@/services/firebaseMensagens";
+import { activeApi } from "@/services/api";
 
 interface ChatViewProps {
   conversation: Conversation;
   onStatusChange: (convId: string, status: ConversationStatus) => void;
   onBack: () => void;
+  onOpenSidebar: () => void;
 }
 
-export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps) {
+export function ChatView({
+  conversation,
+  onStatusChange,
+  onBack,
+  onOpenSidebar
+}: ChatViewProps) {
 
   const { user } = useAuth();
 
@@ -26,7 +45,8 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const status: ConversationStatus = (conversation.status as ConversationStatus) || "bot";
+  const status: ConversationStatus =
+    (conversation.status as ConversationStatus) || "bot";
 
   const nomeValido =
     conversation.nome &&
@@ -58,14 +78,12 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
     if (!input.trim()) return;
 
-    const texto = input;
-
     setSending(true);
 
     try {
       await activeApi.enviarMensagem(
         String(conversation.numero),
-        texto,
+        input,
         user?.email?.split("@")[0] || "Atendente",
         user?.unidade_id
       );
@@ -88,28 +106,6 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
       );
 
       onStatusChange(conversation.numero, status);
-
-      const labels: Record<string, string> = {
-        atendimento: "Atendimento assumido",
-        finalizado: "Atendimento finalizado",
-        bot: "Retornado para o bot",
-        aguardando: "Aguardando"
-      };
-
-      toast.success(labels[status]);
-
-      try {
-        const updatedMessages = await activeApi.getMensagens(
-          conversation.numero,
-          user?.unidade_id
-        );
-        if (Array.isArray(updatedMessages) && updatedMessages.length > 0) {
-          setMessages(updatedMessages);
-        }
-      } catch (e) {
-        console.error("Erro ao atualizar mensagens", e);
-      }
-
     } catch {
       toast.error("Erro ao alterar status");
     }
@@ -126,10 +122,11 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
     <div className="flex flex-col h-full">
 
       {/* HEADER */}
-      <div className="border-b px-4 h-[72px] bg-card flex items-center gap-3">
+      <div className="border-b px-4 h-[72px] bg-[#F1F5F9] flex items-center gap-3">
 
-        <button onClick={onBack} className="md:hidden text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-5 h-5" />
+        {/* 🍔 MENU */}
+        <button onClick={onOpenSidebar}>
+          <Menu className="w-5 h-5 text-gray-700" />
         </button>
 
         <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
@@ -142,7 +139,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
           <div className="flex items-center gap-2">
 
-            <h2 className="text-sm font-semibold truncate">
+            <h2 className="text-sm font-semibold truncate text-gray-800">
               {nome}
             </h2>
 
@@ -161,7 +158,7 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
             <Phone className="w-3 h-3" />
             <span>{conversation.numero}</span>
             <span>•</span>
@@ -170,98 +167,54 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
         </div>
 
-        <div className="flex items-center gap-2">
-
-          {status !== "atendimento" && (
-            <Button
-              size="sm"
-              className="bg-accent text-accent-foreground text-xs gap-1"
-              onClick={() => handleStatusChange("atendimento")}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              Assumir
-            </Button>
-          )}
-
-          {status === "atendimento" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs gap-1"
-                onClick={() => handleStatusChange("bot")}
-              >
-                <Bot className="w-3.5 h-3.5" />
-                Bot
-              </Button>
-
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs gap-1 text-red-500"
-                onClick={() => handleStatusChange("finalizado")}
-              >
-                <XCircle className="w-3.5 h-3.5" />
-                Finalizar
-              </Button>
-            </>
-          )}
-
-        </div>
+        {/* BOTÕES DE STATUS */}
+        {status !== "atendimento" && (
+          <Button
+            size="sm"
+            className="bg-[#0B3CFF] text-white text-xs"
+            onClick={() => handleStatusChange("atendimento")}
+          >
+            Assumir
+          </Button>
+        )}
 
       </div>
 
       {/* MENSAGENS */}
       <div className="flex-1 overflow-y-auto p-4 bg-[#0F1729] relative">
 
-        {/* FUNDO COM LOGO */}
-        <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-30 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-10 pointer-events-none"></div>
 
         <div className="relative z-10 space-y-3">
 
           <AnimatePresence>
 
-            {messages.map((msg, index) => {
+            {messages.map((msg, index) => (
 
-              const dataValida =
-                msg.horario && !isNaN(new Date(msg.horario).getTime());
+              <motion.div
+                key={msg.id ?? `${msg.horario || ""}-${index}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "flex",
+                  msg.remetente === "cliente" && "justify-start",
+                  (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
+                )}
+              >
 
-              return (
-                <motion.div
-                  key={msg.id ?? `${msg.horario || ""}-${index}`}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <div
                   className={cn(
-                    "flex",
-                    msg.remetente === "cliente" && "justify-start",
-                    (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
+                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
+                    msg.remetente === "cliente" && "bg-gray-200 text-black",
+                    (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-[#1F517F] text-white"
                   )}
                 >
+                  {msg.texto}
+                </div>
 
-                  <div
-                    className={cn(
-                      "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                      msg.remetente === "cliente" && "bg-gray-200 text-black",
-                      (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-gray-400 text-white"
-                    )}
-                  >
+              </motion.div>
 
-                    {msg.texto}
-
-                    <span className="block text-[10px] text-muted-foreground mt-1 text-right">
-                      {dataValida
-                        ? new Date(msg.horario!).toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })
-                        : ""}
-                    </span>
-
-                  </div>
-
-                </motion.div>
-              );
-            })}
+            ))}
 
           </AnimatePresence>
 
@@ -273,28 +226,19 @@ export function ChatView({ conversation, onStatusChange, onBack }: ChatViewProps
 
       {/* INPUT */}
       {status === "atendimento" && (
-
-        <form onSubmit={handleSend} className="border-t px-4 py-3 bg-card flex items-center gap-2">
+        <form onSubmit={handleSend} className="border-t px-4 py-3 bg-card flex gap-2">
 
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Digite sua mensagem..."
-            className="flex-1"
-            disabled={sending}
           />
 
-          <Button
-            type="submit"
-            size="icon"
-            className="bg-[#0B3CFF] text-white"
-            disabled={sending || !input.trim()}
-          >
-            <Send className="w-4 h-4" />
+          <Button type="submit" className="bg-[#0B3CFF] text-white">
+            <Send className="w-4 h-4"/>
           </Button>
 
         </form>
-
       )}
 
     </div>

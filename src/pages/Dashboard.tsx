@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Conversation, ConversationStatus, Sector } from "@/types";
+import { Conversation, ConversationStatus } from "@/types";
 import { ouvirConversas } from "@/services/firebaseConversas";
 import { ConversationList } from "@/components/ConversationList";
 import { ChatView } from "@/components/ChatView";
@@ -18,12 +18,9 @@ import {
   X,
   Settings
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 type StatusFilter = ConversationStatus | "all";
-
-const SECTORS: Sector[] = ["Financeiro", "Planos", "Geral"];
 
 const Dashboard = () => {
 
@@ -33,10 +30,9 @@ const Dashboard = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [sectorFilter, setSectorFilter] = useState<Sector | "all">("all");
-  const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
 
@@ -45,12 +41,10 @@ const Dashboard = () => {
       return;
     }
 
-    // 🔥 MULTI-UNIDADE
     const unsubscribe = ouvirConversas((data) => {
 
       setConversations(data);
       setLastUpdate(new Date());
-      setLoading(false);
 
       if (selectedConv) {
         const updated = data.find(
@@ -65,199 +59,93 @@ const Dashboard = () => {
 
   }, [user]);
 
-  const handleStatusChange = (
-    convId: string,
-    status: ConversationStatus
-  ) => {
-
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.conversa_id === convId ? { ...c, status } : c
-      )
-    );
-
-    setSelectedConv((prev) =>
-      prev?.conversa_id === convId ? { ...prev, status } : prev
-    );
-
-  };
-
   const counts = {
-
-    aguardando: conversations.filter(
-      (c) => c.status === "aguardando"
-    ).length,
-
-    atendimento: conversations.filter(
-      (c) => c.status === "atendimento"
-    ).length,
-
-    finalizado: conversations.filter(
-      (c) => c.status === "finalizado"
-    ).length,
-
-    bot: conversations.filter(
-      (c) => c.status === "bot"
-    ).length
-
+    aguardando: conversations.filter((c) => c.status === "aguardando").length,
+    atendimento: conversations.filter((c) => c.status === "atendimento").length,
+    finalizado: conversations.filter((c) => c.status === "finalizado").length,
+    bot: conversations.filter((c) => c.status === "bot").length
   };
 
   const filterButtons = [
-
-    {
-      key: "all",
-      label: "Todas",
-      icon: <MessageSquare className="w-4 h-4" />
-    },
-
-    {
-      key: "aguardando",
-      label: "Aguardando",
-      icon: <Clock className="w-4 h-4" />,
-      count: counts.aguardando
-    },
-
-    {
-      key: "atendimento",
-      label: "Em atendimento",
-      icon: <Headphones className="w-4 h-4" />,
-      count: counts.atendimento
-    },
-
-    {
-      key: "finalizado",
-      label: "Finalizadas",
-      icon: <CheckCircle className="w-4 h-4" />,
-      count: counts.finalizado
-    },
-
-    {
-      key: "bot",
-      label: "Bot",
-      icon: <Bot className="w-4 h-4" />,
-      count: counts.bot
-    }
-
+    { key: "all", label: "Todas", icon: <MessageSquare className="w-4 h-4" /> },
+    { key: "aguardando", label: "Aguardando", icon: <Clock className="w-4 h-4" />, count: counts.aguardando },
+    { key: "atendimento", label: "Em atendimento", icon: <Headphones className="w-4 h-4" />, count: counts.atendimento },
+    { key: "finalizado", label: "Finalizadas", icon: <CheckCircle className="w-4 h-4" />, count: counts.finalizado },
+    { key: "bot", label: "Bot", icon: <Bot className="w-4 h-4" />, count: counts.bot }
   ];
 
   return (
 
     <div className="h-screen flex bg-background overflow-hidden">
 
+      {/* OVERLAY */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR */}
       <AnimatePresence>
-
         {sidebarOpen && (
-
           <motion.aside
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 280, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
             transition={{ duration: 0.2 }}
-            className="bg-sidebar flex flex-col h-full border-r border-sidebar-border overflow-hidden flex-shrink-0"
+            className="fixed top-0 left-0 h-full w-[280px] bg-sidebar z-50 shadow-xl flex flex-col"
           >
 
-            <div className="px-4 h-[72px] border-b border-white bg-white flex items-center">
+            {/* HEADER */}
+            <div className="px-4 h-[72px]  bg-[#0F1729] flex items-center justify-between">
 
-              <div className="flex items-center justify-between">
-
-                <div className="flex items-center gap-2">
-
-                  <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-                    <MessageSquare className="w-4 h-4 text-sidebar-primary-foreground"/>
-                  </div>
-
-                  <div>
-                    <h1 className="text-sm font-bold text-gray-800">
-                      Atendimento
-                    </h1>
-
-                    <p className="text-[10px] text-sidebar-foreground/60">
-                      {user?.unidade_nome}
-                    </p>
-                  </div>
-
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-white"/>
                 </div>
 
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="text-sidebar-foreground/60 hover:text-sidebar-foreground md:hidden"
-                >
-                  <X className="w-5 h-5"/>
-                </button>
-
+                <div>
+                  <h1 className="text-sm font-bold text-white">
+                    Atendimento
+                  </h1>
+                  <p className="text-[10px] text-gray-500">
+                    {user?.unidade_nome}
+                  </p>
+                </div>
               </div>
+
+              <button onClick={() => setSidebarOpen(false)}>
+                <X className="w-5 h-5 text-gray-600"/>
+              </button>
+
             </div>
 
-            <div className="px-3 py-3 border-b border-sidebar-border">
-
-              <div className="grid grid-cols-2 gap-2">
-
-                <div className="bg-status-waiting/15 rounded-lg px-3 py-2 text-center">
-                  <p className="text-lg font-bold text-status-waiting">
-                    {counts.aguardando}
-                  </p>
-                  <p className="text-[10px] text-sidebar-foreground/60">
-                    Aguardando
-                  </p>
-                </div>
-
-                <div className="bg-status-attending/15 rounded-lg px-3 py-2 text-center">
-                  <p className="text-lg font-bold text-status-attending">
-                    {counts.atendimento}
-                  </p>
-                  <p className="text-[10px] text-sidebar-foreground/60">
-                    Atendendo
-                  </p>
-                </div>
-
-              </div>
-            </div>
-
+            {/* FILTROS */}
             <div className="px-3 py-3 space-y-1">
-
               {filterButtons.map((f: any) => (
-
                 <button
                   key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
-                    statusFilter === f.key
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-                  )}
+                  onClick={() => {
+                    setStatusFilter(f.key);
+                    setSidebarOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50"
                 >
-
                   {f.icon}
+                  <span className="flex-1 text-left">{f.label}</span>
 
-                  <span className="flex-1 text-left">
-                    {f.label}
-                  </span>
-
-                  {f.count !== undefined && f.count > 0 && (
-                    <span className="text-xs bg-sidebar-muted px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {f.count > 0 && (
+                    <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
                       {f.count}
                     </span>
                   )}
-
                 </button>
-
               ))}
-
             </div>
 
-            <div className="mt-auto px-3 py-3 border-t border-sidebar-border space-y-2">
-
-              {user?.perfil === "admin" && (
-                <Button
-                  variant="secondary"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/admin/usuarios")}
-                >
-                  <Settings className="w-4 h-4 mr-2"/>
-                  Usuários
-                </Button>
-              )}
+            {/* FOOTER */}
+            <div className="mt-auto px-3 py-3 space-y-2 border-t border-sidebar-border">
 
               <Button
                 variant="secondary"
@@ -283,31 +171,35 @@ const Dashboard = () => {
             </div>
 
           </motion.aside>
-
         )}
-
       </AnimatePresence>
 
+      {/* CONTEÚDO */}
       <div className="flex-1 flex h-full overflow-hidden">
 
+        {/* LISTA */}
         <div className="w-full md:w-[360px] border-r flex flex-col bg-card">
 
-          <div className="px-4 h-[72px] border-b flex items-center gap-2">
+          <div className="px-4 h-[72px] border-b bg-[#F1F5F9] flex items-center gap-2">
 
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Menu className="w-5 h-5"/>
+            {/* BOTÃO MENU */}
+            <div className="relative">
+              <button onClick={() => setSidebarOpen(true)}>
+                <Menu className="w-5 h-5 text-gray-700"/>
               </button>
-            )}
+
+              {counts.aguardando > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full">
+                  {counts.aguardando}
+                </span>
+              )}
+            </div>
 
             <h2 className="text-sm font-semibold flex-1">
               Conversas
             </h2>
 
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-1 text-[10px] text-gray-500">
               <RefreshCw className="w-3 h-3"/>
               {lastUpdate.toLocaleTimeString()}
             </div>
@@ -319,39 +211,27 @@ const Dashboard = () => {
             selectedId={selectedConv?.conversa_id ?? null}
             onSelect={(conv) => setSelectedConv(conv)}
             statusFilter={statusFilter}
-            sectorFilter={sectorFilter}
+            sectorFilter="all"
           />
 
         </div>
 
+        {/* CHAT */}
         <div className="flex-1 flex flex-col">
-
           {selectedConv ? (
-
             <ChatView
               conversation={selectedConv}
-              onStatusChange={handleStatusChange}
+              onStatusChange={() => {}}
               onBack={() => setSelectedConv(null)}
+              onOpenSidebar={() => setSidebarOpen(true)}
             />
-
           ) : (
-
             <div className="flex-1 flex items-center justify-center bg-muted/20">
-
-              <div className="text-center">
-
-                <MessageSquare className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3"/>
-
-                <p className="text-sm text-muted-foreground">
-                  Selecione uma conversa para visualizar
-                </p>
-
-              </div>
-
+              <p className="text-sm text-muted-foreground">
+                Selecione uma conversa
+              </p>
             </div>
-
           )}
-
         </div>
 
       </div>
