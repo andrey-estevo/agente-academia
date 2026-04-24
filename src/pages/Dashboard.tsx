@@ -87,15 +87,17 @@ const Dashboard = () => {
 
   return (
 
-    <div className="h-screen flex bg-[#0f172a] overflow-hidden">
+    <div className="h-screen flex bg-[#070F1F] overflow-hidden">
 
+      {/* OVERLAY MOBILE */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
+      {/* SIDEBAR */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.aside
@@ -103,13 +105,14 @@ const Dashboard = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-xl flex flex-col"
+            className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-2xl flex flex-col border-r border-white/5"
           >
 
-            <div className="px-4 h-[72px] flex items-center justify-between border-b border-[#1f2937]">
+            {/* HEADER */}
+            <div className="px-4 h-[72px] flex items-center justify-between border-b border-white/5">
 
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow">
                   <MessageSquare className="w-4 h-4 text-white"/>
                 </div>
 
@@ -129,6 +132,7 @@ const Dashboard = () => {
 
             </div>
 
+            {/* FILTROS */}
             <div className="px-3 py-3 space-y-1">
               {filterButtons.map((f: any) => (
                 <button
@@ -137,7 +141,7 @@ const Dashboard = () => {
                     setStatusFilter(f.key);
                     setSidebarOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-[#1e293b]"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-[#1e293b] transition"
                 >
                   {f.icon}
                   <span className="flex-1 text-left">{f.label}</span>
@@ -151,7 +155,8 @@ const Dashboard = () => {
               ))}
             </div>
 
-            <div className="mt-auto px-3 py-3 space-y-2 border-t border-[#1f2937]">
+            {/* FOOTER */}
+            <div className="mt-auto px-3 py-3 space-y-2 border-t border-white/5">
 
               {user?.perfil === "admin" && (
                 <Button
@@ -191,12 +196,13 @@ const Dashboard = () => {
         )}
       </AnimatePresence>
 
+      {/* MAIN */}
       <div className="flex-1 flex h-full overflow-hidden">
 
         {/* LISTA */}
-        <div className="w-full md:w-[360px] border-r border-[#1f2937] flex flex-col bg-[#020617]">
+        <div className="w-full md:w-[360px] border-r border-white/5 flex flex-col bg-[#020617]">
 
-          <div className="px-4 h-[72px] border-b border-[#1f2937] flex items-center gap-2">
+          <div className="px-4 h-[72px] border-b border-white/5 flex items-center gap-2">
 
             <div className="relative">
               <button onClick={() => setSidebarOpen(true)}>
@@ -232,7 +238,8 @@ const Dashboard = () => {
         </div>
 
         {/* CHAT */}
-        <div className="flex-1 flex flex-col bg-[#0f172a]">
+        <div className="flex-1 flex flex-col bg-[#070F1F]">
+
           {selectedConv ? (
             <ChatView
               conversation={selectedConv}
@@ -247,16 +254,27 @@ const Dashboard = () => {
           ) : (
             <div className="flex-1 flex items-center justify-center relative">
 
-              <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-[0.05] pointer-events-none"></div>
+              {/* FUNDO */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <img
+                  src="/logo-sky.png"
+                  className="w-[500px] opacity-5"
+                />
+              </div>
 
+              {/* TEXTO */}
               <div className="relative z-10 text-center">
-                <p className="text-sm text-gray-400">
-                  Selecione uma conversa
+                <h2 className="text-white text-lg font-semibold">
+                  Bem-vindo ao painel
+                </h2>
+                <p className="text-gray-400 mt-1 text-sm">
+                  Selecione uma conversa para começar
                 </p>
               </div>
 
             </div>
           )}
+
         </div>
 
       </div>

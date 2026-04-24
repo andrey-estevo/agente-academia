@@ -106,7 +106,7 @@ export function ConversationList({
 
   if (filtered.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#0f172a]">
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#0B1220]">
         <p className="text-sm text-gray-400">
           Nenhuma conversa encontrada
         </p>
@@ -115,7 +115,8 @@ export function ConversationList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto scrollbar-thin bg-[#0f172a]">
+    <div className="flex-1 overflow-y-auto bg-[#0B1220] px-2 py-2 space-y-2">
+
       <AnimatePresence>
 
         {filtered.map((conv) => {
@@ -140,7 +141,12 @@ export function ConversationList({
           const status = conv.status || "aguardando";
           const setor = conv.setor || "geral";
           const id = numero;
-          const iniciais = numero.slice(-2) || "CL";
+          const iniciais = nome
+            .split(" ")
+            .map(n => n[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
 
           const convNormalizada: Conversation = {
             ...conv,
@@ -152,28 +158,30 @@ export function ConversationList({
             <motion.button
               key={id}
               layout
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
               onClick={() => onSelect(convNormalizada)}
               className={cn(
-                "w-full text-left px-4 py-3 border-b border-white/5 transition-all duration-200",
-                "hover:bg-[#1e293b]",
-                selectedId === id && "bg-[#1e293b] border-l-4 border-blue-500"
+                "w-full text-left p-3 rounded-xl transition-all duration-200 border border-white/5",
+                "hover:bg-[#1e293b] hover:border-white/10",
+                selectedId === id && "bg-[#1e293b] border-blue-500 shadow-lg"
               )}
             >
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3">
 
-                <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                {/* AVATAR */}
+                <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20">
                   <span className="text-sm font-semibold text-blue-400">
                     {iniciais}
                   </span>
                 </div>
 
+                {/* CONTEÚDO */}
                 <div className="flex-1 min-w-0">
 
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between">
 
                     <span className="text-sm font-medium text-white truncate">
                       {nome}
@@ -185,15 +193,20 @@ export function ConversationList({
 
                   </div>
 
-                  <p className="text-xs text-gray-400 truncate mt-0.5">
+                  <p className="text-xs text-gray-400 truncate mt-1">
                     {conv.ultima_mensagem || "Nova conversa"}
                   </p>
 
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center justify-between mt-2">
 
-                    <StatusDot status={status} />
+                    <div className="flex items-center gap-2">
+                      <StatusDot status={status} />
+                      <span className="text-[10px] text-gray-400 capitalize">
+                        {status}
+                      </span>
+                    </div>
 
-                    <span className="text-[10px] text-gray-400 bg-[#020617] px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-gray-400 bg-[#020617] px-2 py-0.5 rounded">
                       {setor}
                     </span>
 

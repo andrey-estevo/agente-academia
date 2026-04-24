@@ -1,3 +1,5 @@
+// baseado no seu arquivo original :contentReference[oaicite:0]{index=0}
+
 import { useState, useEffect, useRef } from "react";
 import { Conversation, Message, ConversationStatus } from "@/types";
 
@@ -107,12 +109,12 @@ export function ChatView({
     .toUpperCase();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-[#070F1F]">
 
       {/* HEADER */}
-      <div className="border-b border-[#1f2937] px-4 h-[72px] bg-[#020617] flex items-center gap-3">
+      <div className="border-b border-white/5 px-4 h-[72px] bg-[#020617] flex items-center gap-3 backdrop-blur">
 
-        <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20">
           <span className="text-sm font-semibold text-blue-400">
             {iniciais}
           </span>
@@ -128,15 +130,15 @@ export function ChatView({
 
             <span className={cn(
               "text-[11px] px-2 py-0.5 rounded-full font-medium",
-              status === "atendimento" && "bg-blue-600 text-white",
+              status === "atendimento" && "bg-green-500/20 text-green-400",
               status === "aguardando" && "bg-yellow-500/20 text-yellow-400",
               status === "bot" && "bg-blue-500/20 text-blue-400",
-              status === "finalizado" && "bg-gray-600 text-gray-200"
+              status === "finalizado" && "bg-gray-500/20 text-gray-400"
             )}>
-              {status === "atendimento" && "🟢 Em atendimento"}
-              {status === "aguardando" && "🟡 Aguardando"}
-              {status === "bot" && "🔵 Bot"}
-              {status === "finalizado" && "⚪ Finalizado"}
+              {status === "atendimento" && "Em atendimento"}
+              {status === "aguardando" && "Aguardando"}
+              {status === "bot" && "Bot"}
+              {status === "finalizado" && "Finalizado"}
             </span>
 
           </div>
@@ -190,9 +192,15 @@ export function ChatView({
       </div>
 
       {/* MENSAGENS */}
-      <div className="flex-1 overflow-y-auto p-4 bg-[#0f172a] relative">
+      <div className="flex-1 overflow-y-auto p-4 relative">
 
-        <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-5 pointer-events-none"></div>
+        {/* FUNDO COM LOGO */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <img
+            src="/logo-sky.png"
+            className="w-[400px] opacity-5"
+          />
+        </div>
 
         <div className="relative z-10 space-y-3">
 
@@ -213,7 +221,7 @@ export function ChatView({
 
                 <div
                   className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow",
+                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-lg",
                     msg.remetente === "cliente" && "bg-[#1e293b] text-white",
                     (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-blue-600 text-white"
                   )}
@@ -235,7 +243,7 @@ export function ChatView({
 
       {/* INPUT */}
       {status === "atendimento" && (
-        <form onSubmit={handleSend} className="border-t border-[#1f2937] px-4 py-3 bg-[#020617] flex gap-2">
+        <form onSubmit={handleSend} className="border-t border-white/5 px-4 py-3 bg-[#020617] flex gap-2">
 
           <Input
             value={input}
