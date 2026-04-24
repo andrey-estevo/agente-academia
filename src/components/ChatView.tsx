@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-
 import { Conversation, Message, ConversationStatus } from "@/types";
 
 import { ouvirMensagens } from "@/services/firebaseMensagens";
@@ -8,16 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import {
-  Send,
-  UserCheck,
-  XCircle,
-  Bot,
-  Phone,
-  ArrowLeft,
-  Menu
-} from "lucide-react";
-
+import { Send, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -33,8 +23,6 @@ interface ChatViewProps {
 export function ChatView({
   conversation,
   onStatusChange,
-  onBack,
-  onOpenSidebar
 }: ChatViewProps) {
 
   const { user } = useAuth();
@@ -122,15 +110,10 @@ export function ChatView({
     <div className="flex flex-col h-full">
 
       {/* HEADER */}
-      <div className="border-b px-4 h-[72px] bg-[#F1F5F9] flex items-center gap-3">
+      <div className="border-b border-[#1f2937] px-4 h-[72px] bg-[#020617] flex items-center gap-3">
 
-        {/* 🍔 MENU */}
-        <button onClick={onOpenSidebar}>
-          <Menu className="w-5 h-5 text-gray-700" />
-        </button>
-
-        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-          <span className="text-sm font-semibold text-accent">
+        <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center">
+          <span className="text-sm font-semibold text-blue-400">
             {iniciais}
           </span>
         </div>
@@ -139,16 +122,16 @@ export function ChatView({
 
           <div className="flex items-center gap-2">
 
-            <h2 className="text-sm font-semibold truncate text-gray-800">
+            <h2 className="text-sm font-semibold truncate text-white">
               {nome}
             </h2>
 
             <span className={cn(
               "text-[11px] px-2 py-0.5 rounded-full font-medium",
-              status === "atendimento" && "bg-[#0B3CFF] text-white",
-              status === "aguardando" && "bg-yellow-100 text-yellow-700",
-              status === "bot" && "bg-blue-100 text-blue-700",
-              status === "finalizado" && "bg-gray-200 text-gray-600"
+              status === "atendimento" && "bg-blue-600 text-white",
+              status === "aguardando" && "bg-yellow-500/20 text-yellow-400",
+              status === "bot" && "bg-blue-500/20 text-blue-400",
+              status === "finalizado" && "bg-gray-600 text-gray-200"
             )}>
               {status === "atendimento" && "🟢 Em atendimento"}
               {status === "aguardando" && "🟡 Aguardando"}
@@ -158,7 +141,7 @@ export function ChatView({
 
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
             <Phone className="w-3 h-3" />
             <span>{conversation.numero}</span>
             <span>•</span>
@@ -167,23 +150,49 @@ export function ChatView({
 
         </div>
 
-        {/* BOTÕES DE STATUS */}
-        {status !== "atendimento" && (
-          <Button
-            size="sm"
-            className="bg-[#0B3CFF] text-white text-xs"
-            onClick={() => handleStatusChange("atendimento")}
-          >
-            Assumir
-          </Button>
-        )}
+        {/* BOTÕES */}
+        <div className="flex items-center gap-2">
+
+          {status !== "atendimento" && (
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+              onClick={() => handleStatusChange("atendimento")}
+            >
+              Assumir
+            </Button>
+          )}
+
+          {status === "atendimento" && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs text-white border-gray-600"
+                onClick={() => handleStatusChange("bot")}
+              >
+                🤖 Bot
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs text-red-400 border-red-500"
+                onClick={() => handleStatusChange("finalizado")}
+              >
+                ❌ Finalizar
+              </Button>
+            </>
+          )}
+
+        </div>
 
       </div>
 
       {/* MENSAGENS */}
-      <div className="flex-1 overflow-y-auto p-4 bg-[#0F1729] relative">
+      <div className="flex-1 overflow-y-auto p-4 bg-[#0f172a] relative">
 
-        <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-10 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-5 pointer-events-none"></div>
 
         <div className="relative z-10 space-y-3">
 
@@ -204,9 +213,9 @@ export function ChatView({
 
                 <div
                   className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                    msg.remetente === "cliente" && "bg-gray-200 text-black",
-                    (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-[#1F517F] text-white"
+                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow",
+                    msg.remetente === "cliente" && "bg-[#1e293b] text-white",
+                    (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-blue-600 text-white"
                   )}
                 >
                   {msg.texto}
@@ -226,15 +235,16 @@ export function ChatView({
 
       {/* INPUT */}
       {status === "atendimento" && (
-        <form onSubmit={handleSend} className="border-t px-4 py-3 bg-card flex gap-2">
+        <form onSubmit={handleSend} className="border-t border-[#1f2937] px-4 py-3 bg-[#020617] flex gap-2">
 
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Digite sua mensagem..."
+            placeholder="Digite uma mensagem..."
+            className="bg-[#1e293b] border-none text-white placeholder:text-gray-400"
           />
 
-          <Button type="submit" className="bg-[#0B3CFF] text-white">
+          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
             <Send className="w-4 h-4"/>
           </Button>
 

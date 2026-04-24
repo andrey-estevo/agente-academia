@@ -55,7 +55,8 @@ export default function Admin() {
           dia: h.dia,
           abre: h.abre,
           fecha: h.fecha,
-          ativo: h.ativo ?? true
+          ativo: h.ativo ?? true,
+          feriado: h.feriado ?? false
         });
       }
 
@@ -71,7 +72,7 @@ export default function Admin() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
 
-      {/* 🔥 HEADER */}
+      {/* HEADER */}
       <div className="flex items-center justify-between">
 
         <div>
@@ -144,14 +145,13 @@ export default function Admin() {
         <CardContent className="space-y-4">
 
           {horarios.map((h, i) => (
-            <div key={h.id} className="grid grid-cols-4 gap-3 items-center">
+            <div key={h.id} className="grid grid-cols-5 gap-3 items-center">
 
+              {/* 🔒 DIA TRAVADO */}
               <Input
-                placeholder="Dia"
                 value={h.dia}
-                onChange={(e) =>
-                  handleHorarioChange(i, "dia", e.target.value)
-                }
+                disabled
+                className="bg-gray-200 text-gray-600 font-medium cursor-not-allowed"
               />
 
               <Input
@@ -170,6 +170,7 @@ export default function Admin() {
                 }
               />
 
+              {/* ATIVO */}
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -179,6 +180,18 @@ export default function Admin() {
                   }
                 />
                 Ativo
+              </label>
+
+              {/* FERIADO */}
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={h.feriado ?? false}
+                  onChange={(e) =>
+                    handleHorarioChange(i, "feriado", e.target.checked)
+                  }
+                />
+                Feriado
               </label>
 
             </div>

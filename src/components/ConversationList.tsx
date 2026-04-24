@@ -32,12 +32,10 @@ function formatarTelefone(numero: string) {
   return numero || "Cliente";
 }
 
-// 🔥 FUNÇÃO DE DATA
 function formatarData(dataIso?: string) {
   if (!dataIso) return "--";
 
   const data = new Date(dataIso);
-
   if (isNaN(data.getTime())) return "--";
 
   const dia = data.toLocaleDateString("pt-BR", {
@@ -89,7 +87,6 @@ export function ConversationList({
     return true;
   });
 
-  /* 🔊 SOM DE NOTIFICAÇÃO */
   useEffect(() => {
     const temAguardando = unique.some(
       (c) => c.status === "aguardando"
@@ -109,8 +106,8 @@ export function ConversationList({
 
   if (filtered.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#0F1729]">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#0f172a]">
+        <p className="text-sm text-gray-400">
           Nenhuma conversa encontrada
         </p>
       </div>
@@ -118,7 +115,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto scrollbar-thin bg-[#0F1729]">
+    <div className="flex-1 overflow-y-auto scrollbar-thin bg-[#0f172a]">
       <AnimatePresence>
 
         {filtered.map((conv) => {
@@ -160,16 +157,16 @@ export function ConversationList({
               exit={{ opacity: 0, x: -10 }}
               onClick={() => onSelect(convNormalizada)}
               className={cn(
-                "w-full text-left px-4 py-3 border-b border-white/5 transition-colors",
-                "hover:bg-[#1F517F]/20",
-                selectedId === id && "bg-[#1F517F]/30"
+                "w-full text-left px-4 py-3 border-b border-white/5 transition-all duration-200",
+                "hover:bg-[#1e293b]",
+                selectedId === id && "bg-[#1e293b] border-l-4 border-blue-500"
               )}
             >
 
               <div className="flex items-start gap-3">
 
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-sm font-semibold text-accent">
+                <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-sm font-semibold text-blue-400">
                     {iniciais}
                   </span>
                 </div>
@@ -178,17 +175,17 @@ export function ConversationList({
 
                   <div className="flex items-center justify-between gap-2">
 
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-white truncate">
                       {nome}
                     </span>
 
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                    <span className="text-[10px] text-gray-400 whitespace-nowrap">
                       {horario}
                     </span>
 
                   </div>
 
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                  <p className="text-xs text-gray-400 truncate mt-0.5">
                     {conv.ultima_mensagem || "Nova conversa"}
                   </p>
 
@@ -196,7 +193,7 @@ export function ConversationList({
 
                     <StatusDot status={status} />
 
-                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-gray-400 bg-[#020617] px-1.5 py-0.5 rounded">
                       {setor}
                     </span>
 

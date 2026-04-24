@@ -16,7 +16,8 @@ import {
   Bot,
   Menu,
   X,
-  Settings
+  Settings,
+  Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,7 +32,6 @@ const Dashboard = () => {
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [lastUpdate, setLastUpdate] = useState(new Date());
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -59,6 +59,17 @@ const Dashboard = () => {
 
   }, [user]);
 
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedConv(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
   const counts = {
     aguardando: conversations.filter((c) => c.status === "aguardando").length,
     atendimento: conversations.filter((c) => c.status === "atendimento").length,
@@ -76,17 +87,15 @@ const Dashboard = () => {
 
   return (
 
-    <div className="h-screen flex bg-background overflow-hidden">
+    <div className="h-screen flex bg-[#0f172a] overflow-hidden">
 
-      {/* OVERLAY */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* SIDEBAR */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.aside
@@ -94,14 +103,13 @@ const Dashboard = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 h-full w-[280px] bg-sidebar z-50 shadow-xl flex flex-col"
+            className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-xl flex flex-col"
           >
 
-            {/* HEADER */}
-            <div className="px-4 h-[72px]  bg-[#0F1729] flex items-center justify-between">
+            <div className="px-4 h-[72px] flex items-center justify-between border-b border-[#1f2937]">
 
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                   <MessageSquare className="w-4 h-4 text-white"/>
                 </div>
 
@@ -109,19 +117,18 @@ const Dashboard = () => {
                   <h1 className="text-sm font-bold text-white">
                     Atendimento
                   </h1>
-                  <p className="text-[10px] text-gray-500">
+                  <p className="text-[10px] text-gray-400">
                     {user?.unidade_nome}
                   </p>
                 </div>
               </div>
 
               <button onClick={() => setSidebarOpen(false)}>
-                <X className="w-5 h-5 text-gray-600"/>
+                <X className="w-5 h-5 text-gray-400"/>
               </button>
 
             </div>
 
-            {/* FILTROS */}
             <div className="px-3 py-3 space-y-1">
               {filterButtons.map((f: any) => (
                 <button
@@ -130,7 +137,7 @@ const Dashboard = () => {
                     setStatusFilter(f.key);
                     setSidebarOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-[#1e293b]"
                 >
                   {f.icon}
                   <span className="flex-1 text-left">{f.label}</span>
@@ -144,12 +151,22 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {/* FOOTER */}
-            <div className="mt-auto px-3 py-3 space-y-2 border-t border-sidebar-border">
+            <div className="mt-auto px-3 py-3 space-y-2 border-t border-[#1f2937]">
+
+              {user?.perfil === "admin" && (
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start bg-[#1e293b] text-white hover:bg-[#334155]"
+                  onClick={() => navigate("/admin/usuarios")}
+                >
+                  <Users className="w-4 h-4 mr-2"/>
+                  Usuários
+                </Button>
+              )}
 
               <Button
                 variant="secondary"
-                className="w-full justify-start"
+                className="w-full justify-start bg-[#1e293b] text-white hover:bg-[#334155]"
                 onClick={() => navigate("/admin")}
               >
                 <Settings className="w-4 h-4 mr-2"/>
@@ -158,7 +175,7 @@ const Dashboard = () => {
 
               <Button
                 variant="secondary"
-                className="w-full justify-start"
+                className="w-full justify-start bg-[#1e293b] text-white hover:bg-[#334155]"
                 onClick={() => {
                   logout();
                   navigate("/");
@@ -174,18 +191,16 @@ const Dashboard = () => {
         )}
       </AnimatePresence>
 
-      {/* CONTEÚDO */}
       <div className="flex-1 flex h-full overflow-hidden">
 
         {/* LISTA */}
-        <div className="w-full md:w-[360px] border-r flex flex-col bg-card">
+        <div className="w-full md:w-[360px] border-r border-[#1f2937] flex flex-col bg-[#020617]">
 
-          <div className="px-4 h-[72px] border-b bg-[#F1F5F9] flex items-center gap-2">
+          <div className="px-4 h-[72px] border-b border-[#1f2937] flex items-center gap-2">
 
-            {/* BOTÃO MENU */}
             <div className="relative">
               <button onClick={() => setSidebarOpen(true)}>
-                <Menu className="w-5 h-5 text-gray-700"/>
+                <Menu className="w-5 h-5 text-gray-300"/>
               </button>
 
               {counts.aguardando > 0 && (
@@ -195,11 +210,11 @@ const Dashboard = () => {
               )}
             </div>
 
-            <h2 className="text-sm font-semibold flex-1">
+            <h2 className="text-sm font-semibold text-white flex-1">
               Conversas
             </h2>
 
-            <div className="flex items-center gap-1 text-[10px] text-gray-500">
+            <div className="flex items-center gap-1 text-[10px] text-gray-400">
               <RefreshCw className="w-3 h-3"/>
               {lastUpdate.toLocaleTimeString()}
             </div>
@@ -217,19 +232,29 @@ const Dashboard = () => {
         </div>
 
         {/* CHAT */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-[#0f172a]">
           {selectedConv ? (
             <ChatView
               conversation={selectedConv}
-              onStatusChange={() => {}}
+              onStatusChange={(id, newStatus) => {
+                setSelectedConv((prev) =>
+                  prev ? { ...prev, status: newStatus } : prev
+                );
+              }}
               onBack={() => setSelectedConv(null)}
               onOpenSidebar={() => setSidebarOpen(true)}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-muted/20">
-              <p className="text-sm text-muted-foreground">
-                Selecione uma conversa
-              </p>
+            <div className="flex-1 flex items-center justify-center relative">
+
+              <div className="absolute inset-0 bg-[url('/logo-sky.png')] bg-center bg-no-repeat bg-contain opacity-[0.05] pointer-events-none"></div>
+
+              <div className="relative z-10 text-center">
+                <p className="text-sm text-gray-400">
+                  Selecione uma conversa
+                </p>
+              </div>
+
             </div>
           )}
         </div>
