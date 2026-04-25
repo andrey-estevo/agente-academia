@@ -1,5 +1,3 @@
-// baseado no seu arquivo original :contentReference[oaicite:0]{index=0}
-
 import { useState, useEffect, useRef } from "react";
 import { Conversation, Message, ConversationStatus } from "@/types";
 
@@ -41,9 +39,11 @@ export function ChatView({
   const nomeValido =
     conversation.nome &&
     conversation.nome !== conversation.numero &&
+    conversation.nome.trim() !== "" &&
+    conversation.nome !== "Cliente" &&
     conversation.nome !== "Aluno"
       ? conversation.nome
-      : "Cliente";
+      : conversation.numero;
 
   const nome = String(nomeValido);
 
@@ -152,13 +152,13 @@ export function ChatView({
 
         </div>
 
-        {/* BOTÕES */}
+        {/* BOTÕES CORRIGIDOS */}
         <div className="flex items-center gap-2">
 
           {status !== "atendimento" && (
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs transition-all"
               onClick={() => handleStatusChange("atendimento")}
             >
               Assumir
@@ -169,8 +169,7 @@ export function ChatView({
             <>
               <Button
                 size="sm"
-                variant="outline"
-                className="text-xs text-white border-gray-600"
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/30 transition-all"
                 onClick={() => handleStatusChange("bot")}
               >
                 🤖 Bot
@@ -178,8 +177,7 @@ export function ChatView({
 
               <Button
                 size="sm"
-                variant="outline"
-                className="text-xs text-red-400 border-red-500"
+                className="text-xs bg-red-600 hover:bg-red-700 text-white border border-red-500/30 transition-all"
                 onClick={() => handleStatusChange("finalizado")}
               >
                 ❌ Finalizar
@@ -194,7 +192,6 @@ export function ChatView({
       {/* MENSAGENS */}
       <div className="flex-1 overflow-y-auto p-4 relative">
 
-        {/* FUNDO COM LOGO */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <img
             src="/logo-sky.png"
@@ -241,7 +238,6 @@ export function ChatView({
 
       </div>
 
-      {/* INPUT */}
       {status === "atendimento" && (
         <form onSubmit={handleSend} className="border-t border-white/5 px-4 py-3 bg-[#020617] flex gap-2">
 
