@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Send, Phone } from "lucide-react";
+import { Send, Phone, ArrowLeft, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -23,8 +23,9 @@ interface ChatViewProps {
 export function ChatView({
   conversation,
   onStatusChange,
+  onBack,
+  onOpenSidebar
 }: ChatViewProps) {
-
   const { user } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -66,7 +67,7 @@ export function ChatView({
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!input.trim()) return;
+    if (!input.trim() || sending) return;
 
     setSending(true);
 
@@ -110,55 +111,75 @@ export function ChatView({
 
   return (
     <div className="flex flex-col h-full bg-[#070F1F]">
-
       {/* HEADER */}
-      <div className="border-b border-white/5 px-4 h-[72px] bg-[#020617] flex items-center gap-3 backdrop-blur">
+      <div className="border-b border-white/5 px-3 sm:px-4 min-h-[72px] bg-[#020617] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 backdrop-blur shrink-0 py-2 sm:py-0">
+        <div className="flex items-center gap-2 sm:gap-3 w-full min-w-0">
+          {/* VOLTAR MOBILE */}
+          <button
+            type="button"
+            onClick={onBack}
+            className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:bg-white/5 transition shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
 
-        <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20">
-          <span className="text-sm font-semibold text-blue-400">
-            {iniciais}
-          </span>
-        </div>
-
-        <div className="flex-1">
-
-          <div className="flex items-center gap-2">
-
-            <h2 className="text-sm font-semibold truncate text-white">
-              {nome}
-            </h2>
-
-            <span className={cn(
-              "text-[11px] px-2 py-0.5 rounded-full font-medium",
-              status === "atendimento" && "bg-green-500/20 text-green-400",
-              status === "aguardando" && "bg-yellow-500/20 text-yellow-400",
-              status === "bot" && "bg-blue-500/20 text-blue-400",
-              status === "finalizado" && "bg-gray-500/20 text-gray-400"
-            )}>
-              {status === "atendimento" && "Em atendimento"}
-              {status === "aguardando" && "Aguardando"}
-              {status === "bot" && "Bot"}
-              {status === "finalizado" && "Finalizado"}
+          <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20 shrink-0">
+            <span className="text-sm font-semibold text-blue-400">
+              {iniciais}
             </span>
-
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Phone className="w-3 h-3" />
-            <span>{conversation.numero}</span>
-            <span>•</span>
-            <span>{conversation.setor}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="text-sm font-semibold truncate text-white">
+                {nome}
+              </h2>
+
+              <span
+                className={cn(
+                  "text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0",
+                  status === "atendimento" && "bg-green-500/20 text-green-400",
+                  status === "aguardando" && "bg-yellow-500/20 text-yellow-400",
+                  status === "bot" && "bg-blue-500/20 text-blue-400",
+                  status === "finalizado" && "bg-gray-500/20 text-gray-400"
+                )}
+              >
+                {status === "atendimento" && "Em atendimento"}
+                {status === "aguardando" && "Aguardando"}
+                {status === "bot" && "Bot"}
+                {status === "finalizado" && "Finalizado"}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400 min-w-0">
+              <Phone className="w-3 h-3 shrink-0" />
+              <span className="truncate">{conversation.numero}</span>
+
+              {conversation.setor && (
+                <>
+                  <span className="shrink-0">•</span>
+                  <span className="truncate">{conversation.setor}</span>
+                </>
+              )}
+            </div>
           </div>
 
+          {/* MENU MOBILE */}
+          <button
+            type="button"
+            onClick={onOpenSidebar}
+            className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:bg-white/5 transition shrink-0"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* BOTÕES CORRIGIDOS */}
-        <div className="flex items-center gap-2">
-
+        {/* BOTÕES */}
+        <div className="flex items-center gap-2 w-full sm:w-auto sm:justify-end">
           {status !== "atendimento" && (
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs transition-all"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs transition-all w-full sm:w-auto"
               onClick={() => handleStatusChange("atendimento")}
             >
               Assumir
@@ -169,7 +190,7 @@ export function ChatView({
             <>
               <Button
                 size="sm"
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/30 transition-all"
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/30 transition-all flex-1 sm:flex-none"
                 onClick={() => handleStatusChange("bot")}
               >
                 🤖 Bot
@@ -177,34 +198,29 @@ export function ChatView({
 
               <Button
                 size="sm"
-                className="text-xs bg-red-600 hover:bg-red-700 text-white border border-red-500/30 transition-all"
+                className="text-xs bg-red-600 hover:bg-red-700 text-white border border-red-500/30 transition-all flex-1 sm:flex-none"
                 onClick={() => handleStatusChange("finalizado")}
               >
                 ❌ Finalizar
               </Button>
             </>
           )}
-
         </div>
-
       </div>
 
       {/* MENSAGENS */}
-      <div className="flex-1 overflow-y-auto p-4 relative">
-
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 relative min-h-0">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <img
             src="/logo-sky.png"
-            className="w-[400px] opacity-5"
+            className="w-[280px] sm:w-[400px] max-w-[75%] opacity-5"
+            alt="Logo Sky Fit"
           />
         </div>
 
         <div className="relative z-10 space-y-3">
-
           <AnimatePresence>
-
             {messages.map((msg, index) => (
-
               <motion.div
                 key={msg.id ?? `${msg.horario || ""}-${index}`}
                 initial={{ opacity: 0, y: 8 }}
@@ -212,49 +228,52 @@ export function ChatView({
                 className={cn(
                   "flex",
                   msg.remetente === "cliente" && "justify-start",
-                  (msg.remetente === "atendente" || msg.remetente === "bot") && "justify-end"
+                  (msg.remetente === "atendente" ||
+                    msg.remetente === "bot") &&
+                    "justify-end"
                 )}
               >
-
                 <div
                   className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-lg",
+                    "max-w-[88%] sm:max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-lg whitespace-pre-wrap break-words",
                     msg.remetente === "cliente" && "bg-[#1e293b] text-white",
-                    (msg.remetente === "atendente" || msg.remetente === "bot") && "bg-blue-600 text-white"
+                    (msg.remetente === "atendente" ||
+                      msg.remetente === "bot") &&
+                      "bg-blue-600 text-white"
                   )}
                 >
                   {msg.texto}
                 </div>
-
               </motion.div>
-
             ))}
-
           </AnimatePresence>
 
           <div ref={messagesEndRef} />
-
         </div>
-
       </div>
 
+      {/* INPUT */}
       {status === "atendimento" && (
-        <form onSubmit={handleSend} className="border-t border-white/5 px-4 py-3 bg-[#020617] flex gap-2">
-
+        <form
+          onSubmit={handleSend}
+          className="border-t border-white/5 px-3 sm:px-4 py-3 bg-[#020617] flex gap-2 shrink-0"
+        >
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Digite uma mensagem..."
-            className="bg-[#1e293b] border-none text-white placeholder:text-gray-400"
+            className="bg-[#1e293b] border-none text-white placeholder:text-gray-400 h-11"
           />
 
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Send className="w-4 h-4"/>
+          <Button
+            type="submit"
+            disabled={sending || !input.trim()}
+            className="bg-blue-600 hover:bg-blue-700 text-white h-11 w-11 sm:w-auto shrink-0 disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
           </Button>
-
         </form>
       )}
-
     </div>
   );
 }

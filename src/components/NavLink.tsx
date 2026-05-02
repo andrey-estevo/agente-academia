@@ -25,9 +25,10 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
         to={to}
         className={({ isActive, isPending }) =>
           cn(
-            // 🔥 BASE PADRÃO (dark premium)
-            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200",
+            // BASE PADRÃO
+            "flex items-center gap-2 px-3 py-2 min-h-[40px] rounded-lg text-sm transition-all duration-200",
             "text-gray-300 hover:bg-[#1e293b] hover:text-white",
+            "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
 
             // custom vindo de fora
             className,

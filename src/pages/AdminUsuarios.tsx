@@ -21,8 +21,8 @@ export default function AdminUsuarios() {
 
   useEffect(() => {
     fetch("https://noisygrasshopper-n8n.cloudfy.live/webhook/unidades")
-      .then(res => res.json())
-      .then(data => setUnidades(data))
+      .then((res) => res.json())
+      .then((data) => setUnidades(data))
       .catch(() => setUnidades([]));
   }, []);
 
@@ -49,13 +49,16 @@ export default function AdminUsuarios() {
     try {
       setLoading(true);
 
-      const res = await fetch("https://noisygrasshopper-n8n.cloudfy.live/webhook/criar-usuario", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(form)
-      });
+      const res = await fetch(
+        "https://noisygrasshopper-n8n.cloudfy.live/webhook/criar-usuario",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(form)
+        }
+      );
 
       const text = await res.text();
       const data = text ? JSON.parse(text) : {};
@@ -73,7 +76,6 @@ export default function AdminUsuarios() {
         perfil: "atendente",
         unidade_id: ""
       });
-
     } catch (err: any) {
       if (err.message?.includes("EMAIL_EXISTS")) {
         setMsg("Email já existe ❌");
@@ -86,34 +88,32 @@ export default function AdminUsuarios() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070F1F] flex items-center justify-center p-6">
-
+    <div className="min-h-screen bg-[#070F1F] flex items-center justify-center px-4 py-6 sm:p-6">
       {/* CARD */}
-      <div className="w-full max-w-xl bg-[#020617] border border-white/5 rounded-2xl p-6 shadow-xl">
-
+      <div className="w-full max-w-xl bg-[#020617] border border-white/5 rounded-2xl p-5 sm:p-6 shadow-xl">
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h1 className="text-xl font-semibold text-white">
             👤 Criar Usuário
           </h1>
 
           <button
+            type="button"
             onClick={() => navigate(-1)}
-            className="text-sm text-gray-400 hover:text-white transition"
+            className="self-start sm:self-auto text-sm text-gray-400 hover:text-white transition"
           >
             ← Voltar
           </button>
         </div>
 
         <form onSubmit={criarUsuario} className="space-y-4">
-
           <Input
             placeholder="Nome"
             name="nome"
             value={form.nome}
             onChange={handleChange}
             required
-            className="bg-[#1e293b] border-none text-white placeholder:text-gray-400"
+            className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
           />
 
           <Input
@@ -123,7 +123,7 @@ export default function AdminUsuarios() {
             value={form.email}
             onChange={handleChange}
             required
-            className="bg-[#1e293b] border-none text-white placeholder:text-gray-400"
+            className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
           />
 
           <Input
@@ -133,14 +133,14 @@ export default function AdminUsuarios() {
             value={form.password}
             onChange={handleChange}
             required
-            className="bg-[#1e293b] border-none text-white placeholder:text-gray-400"
+            className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
           />
 
           <select
             name="perfil"
             value={form.perfil}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-[#1e293b] text-white border-none"
+            className="w-full h-11 px-3 rounded-md bg-[#1e293b] text-white border-none outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="atendente">Atendente</option>
             <option value="admin">Admin</option>
@@ -151,7 +151,7 @@ export default function AdminUsuarios() {
             value={form.unidade_id}
             onChange={handleChange}
             required
-            className="w-full p-3 rounded bg-[#1e293b] text-white border-none"
+            className="w-full h-11 px-3 rounded-md bg-[#1e293b] text-white border-none outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Selecione a unidade</option>
 
@@ -165,19 +165,17 @@ export default function AdminUsuarios() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-all"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-60"
           >
             {loading ? "Criando usuário..." : "Criar Usuário"}
           </button>
 
           {msg && (
-            <p className="text-sm text-center mt-2 text-gray-300">
+            <p className="text-sm text-center mt-2 text-gray-300 break-words">
               {msg}
             </p>
           )}
-
         </form>
-
       </div>
     </div>
   );
