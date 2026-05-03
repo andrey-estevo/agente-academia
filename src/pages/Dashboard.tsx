@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Conversation, ConversationStatus } from "@/types";
@@ -23,6 +23,22 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type StatusFilter = ConversationStatus | "all";
 
+function limparNumero(numero?: string) {
+  return String(numero || "")
+    .replace("@s.whatsapp.net", "")
+    .replace(/\D/g, "");
+}
+
+function getConversationId(conv?: Conversation | null) {
+  if (!conv) return "";
+
+  const c = conv as Conversation & {
+    telefone?: string;
+  };
+
+  return limparNumero(c.conversa_id || c.numero || c.telefone || "");
+}
+
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +49,13 @@ const Dashboard = () => {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const selectedConvRef = useRef<Conversation | null>(null);
+  const pendingStatusRef = useRef<Record<string, ConversationStatus>>({});
+
+  useEffect(() => {
+    selectedConvRef.current = selectedConv;
+  }, [selectedConv]);
+
   useEffect(() => {
     if (!user) {
       navigate("/");
@@ -40,20 +63,45 @@ const Dashboard = () => {
     }
 
     const unsubscribe = ouvirConversas((data) => {
-      setConversations(data);
+      const dataComStatusLocal = data.map((conv) => {
+        const id = getConversationId(conv);
+        const pendingStatus = pendingStatusRef.current[id];
+
+        if (!pendingStatus) {
+          return conv;
+        }
+
+        if (conv.status === pendingStatus) {
+          delete pendingStatusRef.current[id];
+          return conv;
+        }
+
+        return {
+          ...conv,
+          status: pendingStatus
+        };
+      });
+
+      setConversations(dataComStatusLocal);
       setLastUpdate(new Date());
 
-      if (selectedConv) {
-        const updated = data.find(
-          (c) => c.conversa_id === selectedConv.conversa_id
-        );
+      const selectedAtual = selectedConvRef.current;
 
-        if (updated) setSelectedConv(updated);
+      if (selectedAtual) {
+        const selectedId = getConversationId(selectedAtual);
+
+        const updated = dataComStatusLocal.find((c) => {
+          return getConversationId(c) === selectedId;
+        });
+
+        if (updated) {
+          setSelectedConv(updated);
+        }
       }
     }, user.unidade_id);
 
     return () => unsubscribe();
-  }, [user, navigate, selectedConv]);
+  }, [user, navigate]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -65,6 +113,50 @@ const Dashboard = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
+
+  function handleSelectConversation(conv: Conversation) {
+    const id = getConversationId(conv);
+    const pendingStatus = pendingStatusRef.current[id];
+
+    setSelectedConv({
+      ...conv,
+      status: pendingStatus || conv.status
+    });
+  }
+
+  function handleStatusChange(convId: string, newStatus: ConversationStatus) {
+    const id = limparNumero(convId);
+
+    if (!id) return;
+
+    pendingStatusRef.current[id] = newStatus;
+
+    setSelectedConv((prev) => {
+      if (!prev) return prev;
+
+      const prevId = getConversationId(prev);
+
+      if (prevId !== id) return prev;
+
+      return {
+        ...prev,
+        status: newStatus
+      };
+    });
+
+    setConversations((prev) =>
+      prev.map((conv) => {
+        const convIdLimpo = getConversationId(conv);
+
+        if (convIdLimpo !== id) return conv;
+
+        return {
+          ...conv,
+          status: newStatus
+        };
+      })
+    );
+  }
 
   const counts = {
     aguardando: conversations.filter((c) => c.status === "aguardando").length,
@@ -126,17 +218,17 @@ const Dashboard = () => {
             className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-2xl flex flex-col border-r border-white/5"
           >
             {/* HEADER */}
-            <div className="px-4 h-[72px] flex items-center justify-between border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow">
-                  <MessageSquare className="w-4 h-4 text-white" />
+            <div className="px-4 pt-4 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pt-0 sm:pb-0 flex items-center justify-between border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-8 sm:h-8 rounded-xl sm:rounded-lg bg-blue-600 flex items-center justify-center shadow">
+                  <MessageSquare className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
                 </div>
 
                 <div>
-                  <h1 className="text-sm font-bold text-white">
+                  <h1 className="text-base sm:text-sm font-bold text-white">
                     Atendimento
                   </h1>
-                  <p className="text-[10px] text-gray-400">
+                  <p className="text-[11px] sm:text-[10px] text-gray-400">
                     {user?.unidade_nome}
                   </p>
                 </div>
@@ -145,7 +237,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="p-2 -mr-2 rounded-lg hover:bg-white/5 transition"
+                className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 transition"
               >
                 <X className="w-5 h-5 text-gray-400" />
               </button>
@@ -233,28 +325,34 @@ const Dashboard = () => {
             ${selectedConv ? "hidden md:flex" : "flex"}
           `}
         >
-          <div className="px-4 h-[72px] border-b border-white/5 flex items-center gap-2 shrink-0">
-            <div className="relative">
+          <div className="px-4 pt-4 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pt-0 sm:pb-0 border-b border-white/5 flex items-center gap-3 shrink-0 bg-[#020617]">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="p-2 -ml-2 rounded-lg hover:bg-white/5 transition"
+                className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 hover:bg-white/10 transition"
               >
-                <Menu className="w-5 h-5 text-gray-300" />
+                <Menu className="w-5 h-5 text-gray-200" />
               </button>
 
               {counts.aguardando > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-1.5 rounded-full leading-4 min-w-4 text-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full leading-4 min-w-4 text-center shadow">
                   {counts.aguardando}
                 </span>
               )}
             </div>
 
-            <h2 className="text-sm font-semibold text-white flex-1">
-              Conversas
-            </h2>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-sm font-semibold text-white leading-tight">
+                Conversas
+              </h2>
 
-            <div className="flex items-center gap-1 text-[10px] text-gray-400">
+              <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                {user?.unidade_nome || "Painel de atendimento"}
+              </p>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-1 text-[10px] text-gray-400 shrink-0">
               <RefreshCw className="w-3 h-3" />
               {lastUpdate.toLocaleTimeString()}
             </div>
@@ -264,7 +362,7 @@ const Dashboard = () => {
             <ConversationList
               conversations={conversations}
               selectedId={selectedConv?.conversa_id ?? null}
-              onSelect={(conv) => setSelectedConv(conv)}
+              onSelect={handleSelectConversation}
               statusFilter={statusFilter}
               sectorFilter="all"
             />
@@ -281,11 +379,7 @@ const Dashboard = () => {
           {selectedConv ? (
             <ChatView
               conversation={selectedConv}
-              onStatusChange={(id, newStatus) => {
-                setSelectedConv((prev) =>
-                  prev ? { ...prev, status: newStatus } : prev
-                );
-              }}
+              onStatusChange={handleStatusChange}
               onBack={() => setSelectedConv(null)}
               onOpenSidebar={() => setSidebarOpen(true)}
             />

@@ -51,6 +51,14 @@ function formatarData(dataIso?: string) {
   return `${dia} • ${hora}`;
 }
 
+function statusLabel(status: string) {
+  if (status === "atendimento") return "Em atendimento";
+  if (status === "aguardando") return "Aguardando";
+  if (status === "finalizado") return "Finalizado";
+  if (status === "bot") return "Bot";
+  return status;
+}
+
 export function ConversationList({
   conversations,
   selectedId,
@@ -109,7 +117,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#0B1220] px-2 sm:px-2 py-2 space-y-2">
+    <div className="h-full overflow-y-auto bg-[#0B1220] px-3 py-3 space-y-3">
       <AnimatePresence>
         {filtered.map((conv) => {
           const numero = limparNumero(String(conv.numero || conv.conversa_id || ""));
@@ -124,6 +132,7 @@ export function ConversationList({
               : formatarTelefone(numero);
 
           const nome = String(nomeValido);
+          const telefone = formatarTelefone(numero);
 
           const horario = formatarData(conv.ultima_atualizacao);
 
@@ -156,46 +165,67 @@ export function ConversationList({
               exit={{ opacity: 0 }}
               onClick={() => onSelect(convNormalizada)}
               className={cn(
-                "w-full text-left p-3 rounded-xl transition-all duration-200 border border-white/5",
+                "w-full text-left rounded-2xl transition-all duration-200 border",
+                "p-3.5 bg-[#111827]/70 border-white/5 shadow-sm",
                 "hover:bg-[#1e293b] hover:border-white/10 active:scale-[0.99]",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
-                selectedIdLimpo === id && "bg-[#1e293b] border-blue-500 shadow-lg"
+                selectedIdLimpo === id && "bg-[#1e293b] border-blue-500 shadow-lg shadow-blue-950/30"
               )}
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-start gap-3 min-w-0">
                 {/* AVATAR */}
-                <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20 shrink-0">
-                  <span className="text-sm font-semibold text-blue-400">
-                    {iniciais}
+                <div className="relative shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/25 shadow-inner">
+                    <span className="text-sm font-semibold text-blue-300">
+                      {iniciais}
+                    </span>
+                  </div>
+
+                  <span className="absolute -right-0.5 bottom-0.5">
+                    <StatusDot status={status} />
                   </span>
                 </div>
 
                 {/* CONTEÚDO */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 min-w-0">
-                    <span className="text-sm font-medium text-white truncate min-w-0">
-                      {nome}
-                    </span>
+                  <div className="flex items-start justify-between gap-2 min-w-0">
+                    <div className="min-w-0">
+                      <span className="block text-sm font-semibold text-white truncate">
+                        {nome}
+                      </span>
 
-                    <span className="text-[10px] text-gray-400 whitespace-nowrap shrink-0">
+                      <span className="block text-[11px] text-gray-400 truncate mt-0.5">
+                        {telefone}
+                      </span>
+                    </div>
+
+                    <span className="text-[10px] text-gray-400 whitespace-nowrap shrink-0 pt-0.5">
                       {horario}
                     </span>
                   </div>
 
-                  <p className="text-xs text-gray-400 truncate mt-1">
+                  <p className="text-xs text-gray-300 truncate mt-2 leading-relaxed">
                     {conv.ultima_mensagem || "Nova conversa"}
                   </p>
 
-                  <div className="flex items-center justify-between gap-2 mt-2 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
                     <div className="flex items-center gap-2 min-w-0">
                       <StatusDot status={status} />
 
-                      <span className="text-[10px] text-gray-400 capitalize truncate">
-                        {status}
+                      <span
+                        className={cn(
+                          "text-[10px] px-2 py-0.5 rounded-full truncate",
+                          status === "atendimento" && "bg-blue-500/10 text-blue-300",
+                          status === "aguardando" && "bg-yellow-500/10 text-yellow-300",
+                          status === "finalizado" && "bg-green-500/10 text-green-300",
+                          status === "bot" && "bg-purple-500/10 text-purple-300"
+                        )}
+                      >
+                        {statusLabel(status)}
                       </span>
                     </div>
 
-                    <span className="text-[10px] text-gray-400 bg-[#020617] px-2 py-0.5 rounded shrink-0 max-w-[110px] truncate">
+                    <span className="text-[10px] text-gray-400 bg-[#020617] px-2 py-1 rounded-lg shrink-0 max-w-[110px] truncate">
                       {setor}
                     </span>
                   </div>
