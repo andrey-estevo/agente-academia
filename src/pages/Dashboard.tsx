@@ -67,9 +67,7 @@ const Dashboard = () => {
         const id = getConversationId(conv);
         const pendingStatus = pendingStatusRef.current[id];
 
-        if (!pendingStatus) {
-          return conv;
-        }
+        if (!pendingStatus) return conv;
 
         if (conv.status === pendingStatus) {
           delete pendingStatusRef.current[id];
@@ -94,9 +92,7 @@ const Dashboard = () => {
           return getConversationId(c) === selectedId;
         });
 
-        if (updated) {
-          setSelectedConv(updated);
-        }
+        if (updated) setSelectedConv(updated);
       }
     }, user.unidade_id);
 
@@ -105,9 +101,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelectedConv(null);
-      }
+      if (e.key === "Escape") setSelectedConv(null);
     };
 
     window.addEventListener("keydown", handleKey);
@@ -126,7 +120,6 @@ const Dashboard = () => {
 
   function handleStatusChange(convId: string, newStatus: ConversationStatus) {
     const id = limparNumero(convId);
-
     if (!id) return;
 
     pendingStatusRef.current[id] = newStatus;
@@ -135,25 +128,17 @@ const Dashboard = () => {
       if (!prev) return prev;
 
       const prevId = getConversationId(prev);
-
       if (prevId !== id) return prev;
 
-      return {
-        ...prev,
-        status: newStatus
-      };
+      return { ...prev, status: newStatus };
     });
 
     setConversations((prev) =>
       prev.map((conv) => {
         const convIdLimpo = getConversationId(conv);
-
         if (convIdLimpo !== id) return conv;
 
-        return {
-          ...conv,
-          status: newStatus
-        };
+        return { ...conv, status: newStatus };
       })
     );
   }
@@ -166,39 +151,15 @@ const Dashboard = () => {
   };
 
   const filterButtons = [
-    {
-      key: "all",
-      label: "Todas",
-      icon: <MessageSquare className="w-4 h-4" />
-    },
-    {
-      key: "aguardando",
-      label: "Aguardando",
-      icon: <Clock className="w-4 h-4" />,
-      count: counts.aguardando
-    },
-    {
-      key: "atendimento",
-      label: "Em atendimento",
-      icon: <Headphones className="w-4 h-4" />,
-      count: counts.atendimento
-    },
-    {
-      key: "finalizado",
-      label: "Finalizadas",
-      icon: <CheckCircle className="w-4 h-4" />,
-      count: counts.finalizado
-    },
-    {
-      key: "bot",
-      label: "Bot",
-      icon: <Bot className="w-4 h-4" />,
-      count: counts.bot
-    }
+    { key: "all", label: "Todas", icon: <MessageSquare className="w-4 h-4" /> },
+    { key: "aguardando", label: "Aguardando", icon: <Clock className="w-4 h-4" />, count: counts.aguardando },
+    { key: "atendimento", label: "Em atendimento", icon: <Headphones className="w-4 h-4" />, count: counts.atendimento },
+    { key: "finalizado", label: "Finalizadas", icon: <CheckCircle className="w-4 h-4" />, count: counts.finalizado },
+    { key: "bot", label: "Bot", icon: <Bot className="w-4 h-4" />, count: counts.bot }
   ];
 
   return (
-    <div className="h-screen flex bg-[#070F1F] overflow-hidden">
+    <div className="h-[100dvh] flex bg-[#070F1F] overflow-hidden">
       {/* OVERLAY MOBILE */}
       {sidebarOpen && (
         <div
@@ -218,7 +179,7 @@ const Dashboard = () => {
             className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-2xl flex flex-col border-r border-white/5"
           >
             {/* HEADER */}
-            <div className="px-4 pt-4 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pt-0 sm:pb-0 flex items-center justify-between border-b border-white/5">
+            <div className="px-4 pt-[calc(env(safe-area-inset-top)+12px)] sm:pt-0 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pb-0 flex items-center justify-between border-b border-white/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-8 sm:h-8 rounded-xl sm:rounded-lg bg-blue-600 flex items-center justify-center shadow">
                   <MessageSquare className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
@@ -260,9 +221,7 @@ const Dashboard = () => {
                   }`}
                 >
                   {f.icon}
-
                   <span className="flex-1 text-left">{f.label}</span>
-
                   {"count" in f && f.count > 0 && (
                     <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
                       {f.count}
@@ -325,7 +284,7 @@ const Dashboard = () => {
             ${selectedConv ? "hidden md:flex" : "flex"}
           `}
         >
-          <div className="px-4 pt-4 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pt-0 sm:pb-0 border-b border-white/5 flex items-center gap-3 shrink-0 bg-[#020617]">
+          <div className="px-4 pt-[calc(env(safe-area-inset-top)+12px)] sm:pt-0 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pb-0 border-b border-white/5 flex items-center gap-3 shrink-0 bg-[#020617]">
             <div className="relative shrink-0">
               <button
                 type="button"
@@ -385,7 +344,6 @@ const Dashboard = () => {
             />
           ) : (
             <div className="flex-1 flex items-center justify-center relative">
-              {/* FUNDO */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <img
                   src="/logo-sky.png"
@@ -394,7 +352,6 @@ const Dashboard = () => {
                 />
               </div>
 
-              {/* TEXTO */}
               <div className="relative z-10 text-center px-6">
                 <h2 className="text-white text-lg font-semibold">
                   Bem-vindo ao painel

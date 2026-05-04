@@ -134,7 +134,7 @@ export function ChatView({
     <div className="flex flex-col h-full bg-[#070F1F]">
       {/* HEADER */}
       <div className="border-b border-white/5 bg-[#020617] backdrop-blur shrink-0">
-        <div className="px-3 sm:px-4 pt-4 sm:pt-0 pb-3 sm:pb-0 min-h-[104px] sm:min-h-[72px] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-3">
+        <div className="px-3 sm:px-4 pt-[calc(env(safe-area-inset-top)+12px)] sm:pt-0 pb-3 sm:pb-0 min-h-[104px] sm:min-h-[72px] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-3">
           <div className="flex items-center gap-3 w-full min-w-0">
             {/* VOLTAR MOBILE */}
             <button

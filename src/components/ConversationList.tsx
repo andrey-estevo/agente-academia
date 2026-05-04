@@ -117,7 +117,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#0B1220] px-3 py-3 space-y-3">
+    <div className="h-full overflow-y-auto bg-[#0B1220] px-3 pt-2 pb-3 space-y-3">
       <AnimatePresence>
         {filtered.map((conv) => {
           const numero = limparNumero(String(conv.numero || conv.conversa_id || ""));
@@ -169,7 +169,8 @@ export function ConversationList({
                 "p-3.5 bg-[#111827]/70 border-white/5 shadow-sm",
                 "hover:bg-[#1e293b] hover:border-white/10 active:scale-[0.99]",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
-                selectedIdLimpo === id && "bg-[#1e293b] border-blue-500 shadow-lg shadow-blue-950/30"
+                selectedIdLimpo === id &&
+                  "bg-[#1e293b] border-blue-500 shadow-lg shadow-blue-950/30"
               )}
             >
               <div className="flex items-start gap-3 min-w-0">
