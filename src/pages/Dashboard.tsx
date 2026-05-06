@@ -159,7 +159,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="h-[100dvh] flex bg-[#070F1F] overflow-hidden">
+    <div className="h-[100dvh] flex bg-[#070F1F] overflow-x-hidden overflow-y-auto md:overflow-hidden">
       {/* OVERLAY MOBILE */}
       {sidebarOpen && (
         <div
@@ -176,7 +176,7 @@ const Dashboard = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-2xl flex flex-col border-r border-white/5"
+            className="fixed top-0 left-0 h-full w-[280px] bg-[#020617] z-50 shadow-2xl flex flex-col border-r border-white/5 overflow-y-auto overflow-x-hidden"
           >
             {/* HEADER */}
             <div className="px-4 pt-[calc(env(safe-area-inset-top)+12px)] sm:pt-0 pb-3 min-h-[88px] sm:h-[72px] sm:min-h-0 sm:pb-0 flex items-center justify-between border-b border-white/5">

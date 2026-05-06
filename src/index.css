@@ -118,7 +118,8 @@
 
     /* 🔥 MELHOR RENDER MOBILE */
     min-height: 100dvh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 
     /* 🧠 SAFE AREA GLOBAL */
     padding-top: env(safe-area-inset-top);
