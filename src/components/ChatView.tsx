@@ -105,6 +105,7 @@ export function ChatView({
       setChangingStatus(true);
 
       setLocalStatus(newStatus);
+
       onStatusChange(conversation.numero, newStatus);
 
       await activeApi.alterarStatus(
@@ -114,9 +115,11 @@ export function ChatView({
       );
     } catch (err) {
       setLocalStatus(previousStatus);
+
       onStatusChange(conversation.numero, previousStatus);
 
       toast.error("Erro ao alterar status");
+
       console.error(err);
     } finally {
       setChangingStatus(false);
@@ -131,7 +134,7 @@ export function ChatView({
     .toUpperCase();
 
   return (
-    <div className="flex flex-col h-full bg-[#070F1F]">
+    <div className="flex flex-col h-full bg-[#070F1F] border-l border-blue-500/25 shadow-[-1px_0_10px_rgba(59,130,246,0.10)]">
       {/* HEADER */}
       <div className="border-b border-white/5 bg-[#020617] backdrop-blur shrink-0">
         <div className="px-3 sm:px-4 pt-[calc(env(safe-area-inset-top)+12px)] sm:pt-0 pb-3 sm:pb-0 min-h-[104px] sm:min-h-[72px] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-3">
@@ -145,12 +148,14 @@ export function ChatView({
               <ArrowLeft className="w-5 h-5" />
             </button>
 
+            {/* AVATAR */}
             <div className="w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20 shrink-0 shadow">
               <span className="text-sm font-semibold text-blue-400">
                 {iniciais}
               </span>
             </div>
 
+            {/* INFO */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 <h2 className="text-base sm:text-sm font-semibold truncate text-white leading-tight">
@@ -160,10 +165,14 @@ export function ChatView({
                 <span
                   className={cn(
                     "text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0",
-                    status === "atendimento" && "bg-green-500/20 text-green-400",
-                    status === "aguardando" && "bg-yellow-500/20 text-yellow-400",
-                    status === "bot" && "bg-blue-500/20 text-blue-400",
-                    status === "finalizado" && "bg-gray-500/20 text-gray-400"
+                    status === "atendimento" &&
+                      "bg-green-500/20 text-green-400",
+                    status === "aguardando" &&
+                      "bg-yellow-500/20 text-yellow-400",
+                    status === "bot" &&
+                      "bg-blue-500/20 text-blue-400",
+                    status === "finalizado" &&
+                      "bg-gray-500/20 text-gray-400"
                   )}
                 >
                   {status === "atendimento" && "Em atendimento"}
@@ -175,12 +184,18 @@ export function ChatView({
 
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400 min-w-0 mt-0.5">
                 <Phone className="w-3 h-3 shrink-0" />
-                <span className="truncate">{conversation.numero}</span>
+
+                <span className="truncate">
+                  {conversation.numero}
+                </span>
 
                 {conversation.setor && (
                   <>
                     <span className="shrink-0">•</span>
-                    <span className="truncate">{conversation.setor}</span>
+
+                    <span className="truncate">
+                      {conversation.setor}
+                    </span>
                   </>
                 )}
               </div>
@@ -203,9 +218,13 @@ export function ChatView({
                 size="sm"
                 disabled={changingStatus}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs transition-all w-full sm:w-auto h-10 sm:h-9 rounded-lg disabled:opacity-60"
-                onClick={() => handleStatusChange("atendimento")}
+                onClick={() =>
+                  handleStatusChange("atendimento")
+                }
               >
-                {changingStatus ? "Alterando..." : "Assumir"}
+                {changingStatus
+                  ? "Alterando..."
+                  : "Assumir"}
               </Button>
             )}
 
@@ -224,7 +243,9 @@ export function ChatView({
                   size="sm"
                   disabled={changingStatus}
                   className="text-xs bg-red-600 hover:bg-red-700 text-white border border-red-500/30 transition-all flex-1 sm:flex-none h-10 sm:h-9 rounded-lg disabled:opacity-60"
-                  onClick={() => handleStatusChange("finalizado")}
+                  onClick={() =>
+                    handleStatusChange("finalizado")
+                  }
                 >
                   ❌ Finalizar
                 </Button>
@@ -253,7 +274,8 @@ export function ChatView({
                 animate={{ opacity: 1, y: 0 }}
                 className={cn(
                   "flex",
-                  msg.remetente === "cliente" && "justify-start",
+                  msg.remetente === "cliente" &&
+                    "justify-start",
                   (msg.remetente === "atendente" ||
                     msg.remetente === "bot") &&
                     "justify-end"
@@ -262,7 +284,8 @@ export function ChatView({
                 <div
                   className={cn(
                     "max-w-[88%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-lg whitespace-pre-wrap break-words",
-                    msg.remetente === "cliente" && "bg-[#1e293b] text-white",
+                    msg.remetente === "cliente" &&
+                      "bg-[#1e293b] text-white",
                     (msg.remetente === "atendente" ||
                       msg.remetente === "bot") &&
                       "bg-blue-600 text-white"

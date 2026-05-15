@@ -44,6 +44,9 @@ const Login = () => {
         />
       </div>
 
+      {/* EFEITO DE LUZ FUNDO */}
+      <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,7 +55,7 @@ const Login = () => {
       >
         {/* HEADER */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-600 shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-600 shadow-[0_0_25px_rgba(37,99,235,0.45)] mb-4">
             <MessageSquare className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
 
@@ -66,8 +69,15 @@ const Login = () => {
         </div>
 
         {/* CARD */}
-        <div className="bg-[#020617] border border-white/5 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="bg-[#020617]/95  border-2 border-blue-500/40 rounded-2xl p-5 sm:p-8 shadow-[0_0_40px_rgba(37,99,235,0.15)] backdrop-blur relative overflow-hidden">
+          
+          {/* BRILHO INTERNO */}
+          <div className="absolute inset-0 rounded-2xl border border-blue-400/10 pointer-events-none" />
+
+          {/* LINHA TOPO */}
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+
+          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             {/* EMAIL */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-300">
@@ -83,7 +93,7 @@ const Login = () => {
                   placeholder="atendente@suaacademia.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 pl-10 bg-[#1e293b] border-none text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500"
+                  className="h-11 pl-10 bg-[#1e293b] border border-white/5 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 />
               </div>
@@ -104,7 +114,7 @@ const Login = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pl-10 bg-[#1e293b] border-none text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500"
+                  className="h-11 pl-10 bg-[#1e293b] border border-white/5 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 />
               </div>
@@ -124,7 +134,7 @@ const Login = () => {
             {/* BOTÃO */}
             <Button
               type="submit"
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg"
+              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all duration-300"
               disabled={loading}
             >
               {loading ? "Entrando..." : "Entrar"}
@@ -132,15 +142,24 @@ const Login = () => {
           </form>
 
           {/* DEMO */}
-          <div className="mt-6 p-4 bg-[#1e293b] rounded-lg border border-white/5 overflow-hidden">
+          <div className="mt-6 p-4 bg-[#1e293b]/80 rounded-xl border border-white/5 overflow-hidden relative z-10">
             <p className="text-xs text-gray-300 font-medium mb-2">
               Contas de demonstração:
             </p>
 
             <div className="space-y-1 text-xs text-gray-400">
-              <p className="break-words">atendente1@fitmax.com — FitMax Centro</p>
-              <p className="break-words">atendente2@fitmax.com — FitMax Zona Sul</p>
-              <p className="break-words">atendente3@fitmax.com — FitMax Zona Norte</p>
+              <p className="break-words">
+                atendente1@fitmax.com — FitMax Centro
+              </p>
+
+              <p className="break-words">
+                atendente2@fitmax.com — FitMax Zona Sul
+              </p>
+
+              <p className="break-words">
+                atendente3@fitmax.com — FitMax Zona Norte
+              </p>
+
               <p className="italic mt-1 text-gray-500">
                 Qualquer senha funciona
               </p>

@@ -36,6 +36,7 @@ function formatarData(dataIso?: string) {
   if (!dataIso) return "--";
 
   const data = new Date(dataIso);
+
   if (isNaN(data.getTime())) return "--";
 
   const dia = data.toLocaleDateString("pt-BR", {
@@ -56,6 +57,7 @@ function statusLabel(status: string) {
   if (status === "aguardando") return "Aguardando";
   if (status === "finalizado") return "Finalizado";
   if (status === "bot") return "Bot";
+
   return status;
 }
 
@@ -71,7 +73,9 @@ export function ConversationList({
   const uniqueMap = new Map<string, Conversation>();
 
   conversations.forEach((c) => {
-    const numero = limparNumero(String(c.numero || c.conversa_id || ""));
+    const numero = limparNumero(
+      String(c.numero || c.conversa_id || "")
+    );
 
     if (!numero) return;
 
@@ -88,16 +92,22 @@ export function ConversationList({
 
   const filtered = unique.filter((c) => {
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
+
     if (sectorFilter !== "all" && c.setor !== sectorFilter) return false;
+
     return true;
   });
 
   useEffect(() => {
-    const temAguardando = unique.some((c) => c.status === "aguardando");
+    const temAguardando = unique.some(
+      (c) => c.status === "aguardando"
+    );
 
     if (temAguardando && !jaTocouRef.current) {
       const audio = new Audio("/ting.mp3");
+
       audio.play().catch(() => {});
+
       jaTocouRef.current = true;
     }
 
@@ -120,7 +130,9 @@ export function ConversationList({
     <div className="h-full overflow-y-auto bg-[#0B1220] px-3 pt-2 pb-3 space-y-3">
       <AnimatePresence>
         {filtered.map((conv) => {
-          const numero = limparNumero(String(conv.numero || conv.conversa_id || ""));
+          const numero = limparNumero(
+            String(conv.numero || conv.conversa_id || "")
+          );
 
           const nomeValido =
             conv.nome &&
@@ -132,15 +144,22 @@ export function ConversationList({
               : formatarTelefone(numero);
 
           const nome = String(nomeValido);
+
           const telefone = formatarTelefone(numero);
 
-          const horario = formatarData(conv.ultima_atualizacao);
+          const horario = formatarData(
+            conv.ultima_atualizacao
+          );
 
           const status = conv.status || "aguardando";
+
           const setor = conv.setor || "geral";
+
           const id = numero;
 
-          const selectedIdLimpo = limparNumero(String(selectedId || ""));
+          const selectedIdLimpo = limparNumero(
+            String(selectedId || "")
+          );
 
           const iniciais = nome
             .split(" ")
@@ -165,12 +184,17 @@ export function ConversationList({
               exit={{ opacity: 0 }}
               onClick={() => onSelect(convNormalizada)}
               className={cn(
-                "w-full text-left rounded-2xl transition-all duration-200 border",
-                "p-3.5 bg-[#111827]/70 border-white/5 shadow-sm",
-                "hover:bg-[#1e293b] hover:border-white/10 active:scale-[0.99]",
+                "w-full text-left rounded-2xl transition-all duration-200 border-2",
+                "p-3.5 bg-[#111827]/75 border-gray-300/20",
+                "shadow-[0_0_25px_rgba(37,99,235,0.08)]",
+                "backdrop-blur-sm",
+                "hover:bg-[#1e293b]",
+                "hover:border-blue-400/35",
+                "hover:shadow-[0_0_30px_rgba(37,99,235,0.15)]",
+                "active:scale-[0.99]",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
                 selectedIdLimpo === id &&
-                  "bg-[#1e293b] border-blue-500 shadow-lg shadow-blue-950/30"
+                  "bg-[#1e293b] border-blue-400 shadow-[0_0_35px_rgba(37,99,235,0.22)]"
               )}
             >
               <div className="flex items-start gap-3 min-w-0">
@@ -216,17 +240,21 @@ export function ConversationList({
                       <span
                         className={cn(
                           "text-[10px] px-2 py-0.5 rounded-full truncate",
-                          status === "atendimento" && "bg-blue-500/10 text-blue-300",
-                          status === "aguardando" && "bg-yellow-500/10 text-yellow-300",
-                          status === "finalizado" && "bg-green-500/10 text-green-300",
-                          status === "bot" && "bg-purple-500/10 text-purple-300"
+                          status === "atendimento" &&
+                            "bg-blue-500/10 text-blue-300",
+                          status === "aguardando" &&
+                            "bg-yellow-500/10 text-yellow-300",
+                          status === "finalizado" &&
+                            "bg-green-500/10 text-green-300",
+                          status === "bot" &&
+                            "bg-purple-500/10 text-purple-300"
                         )}
                       >
                         {statusLabel(status)}
                       </span>
                     </div>
 
-                    <span className="text-[10px] text-gray-400 bg-[#020617] px-2 py-1 rounded-lg shrink-0 max-w-[110px] truncate">
+                    <span className="text-[10px] text-gray-400 bg-[#020617] border border-blue-500/10 px-2 py-1 rounded-lg shrink-0 max-w-[110px] truncate">
                       {setor}
                     </span>
                   </div>
