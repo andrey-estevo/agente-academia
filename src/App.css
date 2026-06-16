@@ -1,0 +1,15 @@
+/* RESET TOTAL PARA APP FULLSCREEN */
+
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* remove estilos inúteis do template */
+.logo,
+.card,
+.read-the-docs {
+  all: unset;
+}

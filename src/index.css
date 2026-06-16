@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 10%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 15% 93%;
+    --secondary-foreground: 220 25% 20%;
+
+    --muted: 210 15% 95%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 18%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 222 30% 20%;
+    --sidebar-ring: 221 83% 53%;
+    --sidebar-muted: 222 30% 25%;
+
+    --status-waiting: 45 90% 55%;
+    --status-attending: 221 83% 53%;
+    --status-finished: 215 15% 75%;
+    --status-bot: 262 83% 58%;
+
+    --wa-green: 152 55% 42%;
+    --wa-green-light: 152 40% 95%;
+
+    --wa-bubble-out: 221 83% 53%;
+    --wa-bubble-in: 210 15% 95%;
+    --wa-bubble-bot: 221 60% 95%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 20% 92%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 221 83% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 30% 18%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 222 30% 15%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 221 83% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 30% 20%;
+    --input: 222 30% 20%;
+    --ring: 221 83% 60%;
+
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 20% 80%;
+    --sidebar-primary: 221 83% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 14%;
+    --sidebar-accent-foreground: 210 20% 88%;
+    --sidebar-border: 222 30% 15%;
+    --sidebar-ring: 221 83% 60%;
+    --sidebar-muted: 222 30% 20%;
+
+    --wa-bubble-out: 221 83% 60%;
+    --wa-bubble-in: 222 30% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+
+    /* 🔥 MELHOR RENDER MOBILE */
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    /* 🧠 SAFE AREA GLOBAL */
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* 🔥 SCROLL MAIS SUAVE */
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 20px;
+  }
+}
