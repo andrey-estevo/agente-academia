@@ -1,232 +1,152 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import { getPlanos, updatePlano } from "@/services/firebasePlanos";
 import { getHorarios, updateHorario } from "@/services/firebaseHorarios";
-
+import { AdminShell } from "@/components/AdminShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { CalendarClock, CircleDollarSign, Clock3, Loader2, RotateCcw, Save } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
+
+interface Plano {
+  id: string;
+  nome: string;
+  preco: number | string;
+}
+
+interface Horario {
+  id: string;
+  dia: string;
+  abre: string;
+  fecha: string;
+  ativo?: boolean;
+  feriado?: boolean;
+}
 
 export default function Admin() {
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [planos, setPlanos] = useState<Plano[]>([]);
+  const [horarios, setHorarios] = useState<Horario[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
 
-  const [planos, setPlanos] = useState<any[]>([]);
-  const [horarios, setHorarios] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      const p = await getPlanos();
-      const h = await getHorarios();
-
-      setPlanos(p);
-      setHorarios(h);
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [plansData, schedulesData] = await Promise.all([getPlanos(), getHorarios()]);
+      setPlanos(plansData as Plano[]);
+      setHorarios(schedulesData as Horario[]);
+      setDirty(false);
+    } catch {
+      toast.error("Não foi possível carregar as configurações");
+    } finally {
+      setLoading(false);
     }
-
-    load();
   }, []);
 
-  function handlePlanoChange(index: number, field: string, value: any) {
-    const novos = [...planos];
-    novos[index][field] = value;
-    setPlanos(novos);
+  useEffect(() => {
+    if (user?.perfil === "admin") void load();
+  }, [load, user?.perfil]);
+
+  if (user?.perfil !== "admin") return <Navigate to="/dashboard" replace />;
+
+  function handlePlanoChange(index: number, field: keyof Plano, value: string) {
+    setPlanos((current) => current.map((plano, position) => position === index ? { ...plano, [field]: value } : plano));
+    setDirty(true);
   }
 
-  function handleHorarioChange(index: number, field: string, value: any) {
-    const novos = [...horarios];
-    novos[index][field] = value;
-    setHorarios(novos);
+  function handleHorarioChange(index: number, field: keyof Horario, value: string | boolean) {
+    setHorarios((current) => current.map((horario, position) => position === index ? { ...horario, [field]: value } : horario));
+    setDirty(true);
   }
 
   async function salvarTudo() {
     try {
-      setLoading(true);
-
-      for (const plano of planos) {
-        await updatePlano(plano.id, {
-          nome: plano.nome,
-          preco: Number(plano.preco)
-        });
-      }
-
-      for (const h of horarios) {
-        await updateHorario(h.id, {
-          dia: h.dia,
-          abre: h.abre,
-          fecha: h.fecha,
-          ativo: h.ativo ?? true,
-          feriado: h.feriado ?? false
-        });
-      }
-
-      alert("Tudo salvo 🚀");
+      setSaving(true);
+      await Promise.all([
+        ...planos.map((plano) => updatePlano(plano.id, { nome: plano.nome.trim(), preco: Number(plano.preco) })),
+        ...horarios.map((horario) => updateHorario(horario.id, { dia: horario.dia, abre: horario.abre, fecha: horario.fecha, ativo: horario.ativo ?? true, feriado: horario.feriado ?? false }))
+      ]);
+      setDirty(false);
+      toast.success("Configurações salvas com sucesso");
     } catch {
-      alert("Erro ao salvar ❌");
+      toast.error("Erro ao salvar as configurações");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   }
 
-  return (
-    <div className="min-h-screen bg-[#070F1F] px-4 py-5 sm:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="mb-2 text-sm text-gray-400 hover:text-white transition"
-            >
-              ← Voltar
-            </button>
-
-            <h1 className="text-xl sm:text-2xl font-semibold text-white">
-              Painel Admin 💪
-            </h1>
-
-            <p className="text-sm text-gray-400">
-              Gerencie planos e horários da unidade
-            </p>
-          </div>
-
-          <Button
-            onClick={salvarTudo}
-            disabled={loading}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white transition-all"
-          >
-            {loading ? "Salvando..." : "Salvar Tudo"}
-          </Button>
-        </div>
-
-        {/* PLANOS */}
-        <div className="bg-[#020617] border border-white/5 rounded-2xl p-4 sm:p-5 shadow-xl">
-          <h2 className="text-white font-semibold mb-4">
-            Planos
-          </h2>
-
-          <div className="space-y-4">
-            {planos.map((p, i) => (
-              <div
-                key={p.id}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-              >
-                <Input
-                  placeholder="Nome do plano"
-                  value={p.nome}
-                  onChange={(e) =>
-                    handlePlanoChange(i, "nome", e.target.value)
-                  }
-                  className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Preço"
-                  value={p.preco}
-                  onChange={(e) =>
-                    handlePlanoChange(i, "preco", e.target.value)
-                  }
-                  className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* HORÁRIOS */}
-        <div className="bg-[#020617] border border-white/5 rounded-2xl p-4 sm:p-5 shadow-xl">
-          <h2 className="text-white font-semibold mb-4">
-            Horários
-          </h2>
-
-          <div className="space-y-4">
-            {horarios.map((h, i) => {
-              const isFeriado = h.dia?.toLowerCase() === "feriado";
-
-              return (
-                <div
-                  key={h.id}
-                  className="rounded-xl border border-white/5 bg-[#0B1220] p-3 sm:p-0 sm:border-0 sm:bg-transparent"
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:items-center">
-                    <div className="space-y-1">
-                      <span className="block sm:hidden text-[11px] text-gray-500">
-                        Dia
-                      </span>
-
-                      <Input
-                        value={isFeriado ? "Feriado (horário padrão)" : h.dia}
-                        disabled
-                        className="h-11 bg-[#0f172a] text-gray-400 font-medium cursor-not-allowed border-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="block sm:hidden text-[11px] text-gray-500">
-                        Abertura
-                      </span>
-
-                      <Input
-                        placeholder="Abertura"
-                        value={h.abre}
-                        disabled={false}
-                        onChange={(e) =>
-                          handleHorarioChange(i, "abre", e.target.value)
-                        }
-                        className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="block sm:hidden text-[11px] text-gray-500">
-                        Fechamento
-                      </span>
-
-                      <Input
-                        placeholder="Fechamento"
-                        value={h.fecha}
-                        onChange={(e) =>
-                          handleHorarioChange(i, "fecha", e.target.value)
-                        }
-                        className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-                      />
-                    </div>
-
-                    <label className="flex items-center gap-2 text-sm text-gray-300 min-h-11">
-                      <input
-                        type="checkbox"
-                        checked={h.ativo ?? true}
-                        onChange={(e) =>
-                          handleHorarioChange(i, "ativo", e.target.checked)
-                        }
-                        className="shrink-0"
-                      />
-                      Ativo
-                    </label>
-
-                    {/* NÃO MOSTRAR CHECKBOX NO FERIADO */}
-                    {!isFeriado ? (
-                      <label className="flex items-center gap-2 text-sm text-gray-300 min-h-11">
-                        <input
-                          type="checkbox"
-                          checked={h.feriado ?? false}
-                          onChange={(e) =>
-                            handleHorarioChange(i, "feriado", e.target.checked)
-                          }
-                          className="shrink-0"
-                        />
-                        <span>Usar horário de feriado</span>
-                      </label>
-                    ) : (
-                      <div className="hidden sm:block" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
+  const saveButton = (
+    <Button onClick={salvarTudo} disabled={saving || loading || !dirty} className="w-full sm:w-auto h-11 rounded-xl bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-950/30 disabled:shadow-none">
+      {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+      {saving ? "Salvando..." : dirty ? "Salvar alterações" : "Tudo salvo"}
+    </Button>
   );
+
+  return (
+    <AdminShell title="Planos e horários" description="Atualize os planos comerciais e o funcionamento da academia. As alterações só entram em vigor depois de salvar." action={saveButton}>
+      {loading ? (
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.4fr] animate-pulse">
+          <div className="h-72 rounded-2xl bg-slate-900" />
+          <div className="h-[480px] rounded-2xl bg-slate-900" />
+        </div>
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.4fr] items-start">
+          <section className="rounded-2xl border border-white/[0.07] bg-[#020617] overflow-hidden">
+            <div className="p-5 border-b border-white/[0.06] flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0"><CircleDollarSign className="w-5 h-5 text-emerald-400" /></div>
+              <div><h2 className="font-semibold">Planos</h2><p className="text-xs text-slate-500 mt-0.5">Nome e mensalidade exibidos pelo atendimento.</p></div>
+            </div>
+            <div className="p-5 space-y-5">
+              {planos.length === 0 ? <EmptyState icon={CircleDollarSign} text="Nenhum plano cadastrado" /> : planos.map((plano, index) => (
+                <div key={plano.id} className="rounded-xl bg-slate-900/60 border border-white/[0.05] p-4 space-y-3">
+                  <div className="flex items-center justify-between"><span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Plano {index + 1}</span></div>
+                  <div className="space-y-2"><Label htmlFor={`plan-name-${plano.id}`} className="text-xs text-slate-300">Nome do plano</Label><Input id={`plan-name-${plano.id}`} value={plano.nome || ""} onChange={(event) => handlePlanoChange(index, "nome", event.target.value)} className="h-11 bg-slate-800 border-white/[0.07] text-white rounded-xl" /></div>
+                  <div className="space-y-2"><Label htmlFor={`plan-price-${plano.id}`} className="text-xs text-slate-300">Mensalidade</Label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">R$</span><Input id={`plan-price-${plano.id}`} type="number" min="0" step="0.01" value={plano.preco ?? ""} onChange={(event) => handlePlanoChange(index, "preco", event.target.value)} className="h-11 pl-10 bg-slate-800 border-white/[0.07] text-white rounded-xl" /></div></div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/[0.07] bg-[#020617] overflow-hidden">
+            <div className="p-5 border-b border-white/[0.06] flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0"><CalendarClock className="w-5 h-5 text-blue-400" /></div>
+              <div className="flex-1"><h2 className="font-semibold">Horários de funcionamento</h2><p className="text-xs text-slate-500 mt-0.5">Defina os períodos usados nas respostas automáticas.</p></div>
+              <button type="button" onClick={load} aria-label="Recarregar horários" className="p-2 rounded-lg text-slate-500 hover:bg-white/5 hover:text-white"><RotateCcw className="w-4 h-4" /></button>
+            </div>
+            <div className="p-3 sm:p-5 space-y-2">
+              {horarios.length === 0 ? <EmptyState icon={Clock3} text="Nenhum horário cadastrado" /> : horarios.map((horario, index) => {
+                const isHoliday = horario.dia?.toLowerCase() === "feriado";
+                return (
+                  <div key={horario.id} className="rounded-xl border border-white/[0.06] bg-slate-900/50 p-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center gap-4">
+                      <div className="xl:w-32"><p className="font-medium text-sm">{isHoliday ? "Feriado" : horario.dia}</p><p className="text-[11px] text-slate-500 mt-0.5">{horario.ativo ?? true ? "Funcionando" : "Fechado"}</p></div>
+                      <div className="grid grid-cols-2 gap-3 flex-1">
+                        <div className="space-y-1.5"><Label htmlFor={`open-${horario.id}`} className="text-[11px] text-slate-500">Abertura</Label><Input id={`open-${horario.id}`} type="time" value={horario.abre || ""} disabled={!(horario.ativo ?? true)} onChange={(event) => handleHorarioChange(index, "abre", event.target.value)} className="h-10 bg-slate-800 border-white/[0.07] text-white rounded-lg disabled:opacity-40" /></div>
+                        <div className="space-y-1.5"><Label htmlFor={`close-${horario.id}`} className="text-[11px] text-slate-500">Fechamento</Label><Input id={`close-${horario.id}`} type="time" value={horario.fecha || ""} disabled={!(horario.ativo ?? true)} onChange={(event) => handleHorarioChange(index, "fecha", event.target.value)} className="h-10 bg-slate-800 border-white/[0.07] text-white rounded-lg disabled:opacity-40" /></div>
+                      </div>
+                      <div className="flex xl:flex-col gap-4 xl:gap-2 xl:w-40">
+                        <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><Switch checked={horario.ativo ?? true} onCheckedChange={(checked) => handleHorarioChange(index, "ativo", checked)} className="data-[state=unchecked]:bg-slate-700" /> Aberto</label>
+                        {!isHoliday && <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer"><Switch checked={horario.feriado ?? false} onCheckedChange={(checked) => handleHorarioChange(index, "feriado", checked)} className="data-[state=checked]:bg-violet-600 data-[state=unchecked]:bg-slate-700" /> Usar feriado</label>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {dirty && <div className="sticky bottom-3 mt-5 rounded-2xl border border-blue-500/20 bg-slate-950/95 backdrop-blur-xl p-3 shadow-2xl flex items-center gap-3 sm:hidden"><div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" /><p className="text-xs text-slate-300 flex-1">Há alterações não salvas</p>{saveButton}</div>}
+    </AdminShell>
+  );
+}
+
+function EmptyState({ icon: Icon, text }: { icon: typeof Clock3; text: string }) {
+  return <div className="py-12 text-center"><Icon className="w-6 h-6 text-slate-600 mx-auto mb-2" /><p className="text-sm text-slate-500">{text}</p></div>;
 }

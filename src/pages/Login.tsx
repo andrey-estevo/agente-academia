@@ -1,173 +1,128 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Lock, Mail } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Headphones, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, resetPassword } = useAuth();
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setError("");
     setLoading(true);
-
-    const success = await login(email, password);
-
+    const success = await login(email.trim(), password);
     setLoading(false);
+    if (success) navigate("/dashboard");
+    else setError("Não foi possível entrar. Confira seu e-mail e sua senha.");
+  }
 
-    if (success) {
-      navigate("/dashboard");
-    } else {
-      setError("Email ou senha inválidos");
+  async function handlePasswordReset() {
+    if (!email.trim()) {
+      setError("Digite seu e-mail para receber o link de recuperação.");
+      return;
     }
-  };
+    setError("");
+    setResetting(true);
+    const success = await resetPassword(email.trim());
+    setResetting(false);
+    if (success) toast.success("Enviamos o link de recuperação para o seu e-mail");
+    else setError("Não foi possível enviar o link. Verifique o e-mail informado.");
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#070F1F] px-4 py-6 sm:p-4 relative overflow-hidden">
-      {/* FUNDO COM LOGO */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img
-          src="/logo-sky.png"
-          alt="Logo Sky Fit"
-          className="w-[280px] sm:w-[500px] max-w-[80%] opacity-[0.04]"
-        />
+    <main className="min-h-[100dvh] bg-[#070F1F] text-white relative overflow-hidden">
+      <div className="absolute -top-44 -left-44 w-[520px] h-[520px] rounded-full bg-blue-600/10 blur-[130px] pointer-events-none" />
+      <div className="absolute -bottom-56 -right-44 w-[620px] h-[620px] rounded-full bg-indigo-500/[0.08] blur-[150px] pointer-events-none" />
+
+      <div className="min-h-[100dvh] max-w-7xl mx-auto grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
+        <section className="hidden lg:flex flex-col justify-between px-12 xl:px-20 py-12 border-r border-white/[0.06] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/[0.08] via-transparent to-transparent pointer-events-none" />
+          <img src="/logo-sky.png" alt="" aria-hidden="true" className="absolute w-[560px] max-w-[82%] opacity-[0.035] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+
+          <div className="relative">
+            <img src="/logo-sky.png" alt="Sky Fit Academia" className="w-44 h-auto object-contain object-left" />
+          </div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative max-w-xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-300 mb-6">
+              <Headphones className="w-3.5 h-3.5" /> Central de atendimento
+            </span>
+            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight leading-[1.08]">Atendimento mais rápido, organizado e próximo dos seus alunos.</h1>
+            <p className="text-slate-400 text-base leading-relaxed mt-6 max-w-lg">Gerencie conversas, acompanhe solicitações e mantenha sua equipe conectada em um só lugar.</p>
+            <div className="flex items-center gap-3 mt-8 text-sm text-slate-400"><ShieldCheck className="w-5 h-5 text-emerald-400" /><span>Acesso protegido e exclusivo para colaboradores</span></div>
+          </motion.div>
+
+          <p className="relative text-xs text-slate-600">© {new Date().getFullYear()} Sky Fit Academia. Todos os direitos reservados.</p>
+        </section>
+
+        <section className="flex min-h-[100dvh] items-center justify-center px-4 sm:px-8 py-8 sm:py-12">
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-md">
+            <div className="lg:hidden flex justify-center mb-7">
+              <img src="/logo-sky.png" alt="Sky Fit Academia" className="w-40 h-auto object-contain" />
+            </div>
+
+            <div className="mb-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-400 mb-2">Painel Sky Fit</p>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Bem-vindo de volta</h2>
+              <p className="text-sm text-slate-400 mt-2">Entre para gerenciar seus atendimentos.</p>
+            </div>
+
+            <div className="rounded-2xl border border-white/[0.08] bg-[#020617]/90 p-5 sm:p-7 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-xs text-slate-300">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Input id="email" type="email" autoComplete="email" inputMode="email" placeholder="seuemail@empresa.com" value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} className="h-12 pl-10 rounded-xl bg-slate-800/90 border-white/[0.07] text-white placeholder:text-slate-500 focus-visible:ring-blue-500/50" required autoFocus />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="password" className="text-xs text-slate-300">Senha</Label>
+                    <button type="button" onClick={handlePasswordReset} disabled={resetting} className="text-xs font-medium text-blue-400 hover:text-blue-300 disabled:opacity-50 transition">{resetting ? "Enviando..." : "Esqueci minha senha"}</button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Digite sua senha" value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} className="h-12 pl-10 pr-11 rounded-xl bg-slate-800/90 border-white/[0.07] text-white placeholder:text-slate-500 focus-visible:ring-blue-500/50" required />
+                    <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/5 hover:text-white transition">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                  </div>
+                </div>
+
+                {error && (
+                  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} role="alert" className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 flex items-start gap-2.5 text-xs text-red-300">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /><span>{error}</span>
+                  </motion.div>
+                )}
+
+                <Button type="submit" disabled={loading || !email.trim() || !password} className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-950/40 transition disabled:shadow-none">
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{loading ? "Entrando..." : "Entrar no painel"}
+                </Button>
+              </form>
+
+              <div className="mt-6 pt-5 border-t border-white/[0.06] text-center">
+                <div className="inline-flex items-center gap-2 text-[11px] text-slate-500"><ShieldCheck className="w-3.5 h-3.5" /> Acesso exclusivo para colaboradores autorizados</div>
+                <p className="text-[11px] text-slate-600 mt-2">Precisa de ajuda? Fale com o administrador da sua unidade.</p>
+              </div>
+            </div>
+
+            <p className="lg:hidden text-center text-[10px] text-slate-600 mt-6">© {new Date().getFullYear()} Sky Fit Academia</p>
+          </motion.div>
+        </section>
       </div>
-
-      {/* EFEITO DE LUZ FUNDO */}
-      <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md relative z-10"
-      >
-        {/* HEADER */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-600 shadow-[0_0_25px_rgba(37,99,235,0.45)] mb-4">
-            <MessageSquare className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-          </div>
-
-          <h1 className="text-xl sm:text-2xl font-bold text-white">
-            Painel de Atendimento
-          </h1>
-
-          <p className="text-gray-400 mt-1 text-sm">
-            WhatsApp para Academias
-          </p>
-        </div>
-
-        {/* CARD */}
-        <div className="bg-[#020617]/95  border-2 border-blue-500/40 rounded-2xl p-5 sm:p-8 shadow-[0_0_40px_rgba(37,99,235,0.15)] backdrop-blur relative overflow-hidden">
-          
-          {/* BRILHO INTERNO */}
-          <div className="absolute inset-0 rounded-2xl border border-blue-400/10 pointer-events-none" />
-
-          {/* LINHA TOPO */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
-
-          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
-            {/* EMAIL */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-300">
-                Email
-              </Label>
-
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="atendente@suaacademia.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 pl-10 bg-[#1e293b] border border-white/5 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* SENHA */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-300">
-                Senha
-              </Label>
-
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pl-10 bg-[#1e293b] border border-white/5 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* ERRO */}
-            {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-red-400 text-center"
-              >
-                {error}
-              </motion.p>
-            )}
-
-            {/* BOTÃO */}
-            <Button
-              type="submit"
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all duration-300"
-              disabled={loading}
-            >
-              {loading ? "Entrando..." : "Entrar"}
-            </Button>
-          </form>
-
-          {/* DEMO */}
-          <div className="mt-6 p-4 bg-[#1e293b]/80 rounded-xl border border-white/5 overflow-hidden relative z-10">
-            <p className="text-xs text-gray-300 font-medium mb-2">
-              Contas de demonstração:
-            </p>
-
-            <div className="space-y-1 text-xs text-gray-400">
-              <p className="break-words">
-                atendente1@fitmax.com — FitMax Centro
-              </p>
-
-              <p className="break-words">
-                atendente2@fitmax.com — FitMax Zona Sul
-              </p>
-
-              <p className="break-words">
-                atendente3@fitmax.com — FitMax Zona Norte
-              </p>
-
-              <p className="italic mt-1 text-gray-500">
-                Qualquer senha funciona
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+    </main>
   );
 };
 

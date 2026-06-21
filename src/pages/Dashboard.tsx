@@ -51,6 +51,7 @@ const Dashboard = () => {
   const [conversations, setConversations] = useState<
     Conversation[]
   >([]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
 
   const [selectedConv, setSelectedConv] =
     useState<Conversation | null>(null);
@@ -104,6 +105,7 @@ const Dashboard = () => {
       });
 
       setConversations(dataComStatusLocal);
+      setLoadingConversations(false);
 
       setLastUpdate(new Date());
 
@@ -359,17 +361,19 @@ const Dashboard = () => {
                 </Button>
               )}
 
-              <Button
-                variant="secondary"
-                className="w-full justify-start bg-[#1e293b] text-white hover:bg-[#334155] border border-gray-500/50 rounded-xl h-11"
-                onClick={() => {
-                  setSidebarOpen(false);
-                  navigate("/admin");
-                }}
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
+              {user?.perfil === "admin" && (
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start bg-[#1e293b] text-white hover:bg-[#334155] border border-gray-500/50 rounded-xl h-11"
+                  onClick={() => {
+                    setSidebarOpen(false);
+                    navigate("/admin");
+                  }}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
 
               <Button
                 variant="secondary"
@@ -449,6 +453,7 @@ const Dashboard = () => {
               }
               statusFilter={statusFilter}
               sectorFilter="all"
+              isLoading={loadingConversations}
             />
           </div>
         </div>

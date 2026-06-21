@@ -1,182 +1,152 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { AdminShell } from "@/components/AdminShell";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole, Mail, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+interface Unit {
+  id: string;
+  nome: string;
+}
+
+interface UserForm {
+  nome: string;
+  email: string;
+  password: string;
+  perfil: "atendente" | "admin";
+  unidade_id: string;
+}
+
+const emptyForm: UserForm = { nome: "", email: "", password: "", perfil: "atendente", unidade_id: "" };
 
 export default function AdminUsuarios() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    nome: "",
-    email: "",
-    password: "",
-    perfil: "atendente",
-    unidade_id: ""
-  });
-
+  const [form, setForm] = useState<UserForm>(emptyForm);
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [unidades, setUnidades] = useState<any[]>([]);
+  const [loadingUnits, setLoadingUnits] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [createdName, setCreatedName] = useState("");
+  const [unidades, setUnidades] = useState<Unit[]>([]);
 
   useEffect(() => {
+    if (user?.perfil !== "admin") return;
     fetch("https://noisygrasshopper-n8n.cloudfy.live/webhook/unidades")
-      .then((res) => res.json())
-      .then((data) => setUnidades(data))
-      .catch(() => setUnidades([]));
-  }, []);
+      .then((response) => {
+        if (!response.ok) throw new Error("Erro ao carregar unidades");
+        return response.json() as Promise<Unit[]>;
+      })
+      .then(setUnidades)
+      .catch(() => toast.error("Não foi possível carregar as unidades"))
+      .finally(() => setLoadingUnits(false));
+  }, [user?.perfil]);
 
-  if (user?.perfil !== "admin") {
-    return <Navigate to="/" />;
+  if (user?.perfil !== "admin") return <Navigate to="/dashboard" replace />;
+
+  function updateForm<K extends keyof UserForm>(field: K, value: UserForm[K]) {
+    setForm((current) => ({ ...current, [field]: value }));
+    setCreatedName("");
   }
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  }
-
-  async function criarUsuario(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg("");
-
+  async function criarUsuario(event: React.FormEvent) {
+    event.preventDefault();
     if (form.password.length < 6) {
-      setMsg("Senha precisa ter no mínimo 6 caracteres ❌");
+      toast.error("A senha precisa ter no mínimo 6 caracteres");
       return;
     }
 
     try {
       setLoading(true);
-
-      const res = await fetch(
-        "https://noisygrasshopper-n8n.cloudfy.live/webhook/criar-usuario",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(form)
-        }
-      );
-
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Erro ao criar usuário");
-      }
-
-      setMsg("Usuário criado com sucesso ✅");
-
-      setForm({
-        nome: "",
-        email: "",
-        password: "",
-        perfil: "atendente",
-        unidade_id: ""
+      const response = await fetch("https://noisygrasshopper-n8n.cloudfy.live/webhook/criar-usuario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
       });
-    } catch (err: any) {
-      if (err.message?.includes("EMAIL_EXISTS")) {
-        setMsg("Email já existe ❌");
-      } else {
-        setMsg("Erro ao criar usuário ❌");
-      }
+      const text = await response.text();
+      const data = text ? JSON.parse(text) as { message?: string } : {};
+      if (!response.ok) throw new Error(data.message || "Erro ao criar usuário");
+
+      setCreatedName(form.nome);
+      setForm(emptyForm);
+      toast.success("Usuário criado com sucesso");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(message.includes("EMAIL_EXISTS") ? "Este e-mail já está cadastrado" : "Não foi possível criar o usuário");
     } finally {
       setLoading(false);
     }
   }
 
+  const passwordStrength = form.password.length >= 8 ? "Forte" : form.password.length >= 6 ? "Boa" : "Mínimo de 6 caracteres";
+
   return (
-    <div className="min-h-screen bg-[#070F1F] flex items-center justify-center px-4 py-6 sm:p-6">
-      {/* CARD */}
-      <div className="w-full max-w-xl bg-[#020617] border border-white/5 rounded-2xl p-5 sm:p-6 shadow-xl">
-        {/* HEADER */}
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-          <h1 className="text-xl font-semibold text-white">
-            👤 Criar Usuário
-          </h1>
+    <AdminShell title="Gestão de usuários" description="Crie acessos individuais para atendentes e administradores, vinculados à unidade correta.">
+      <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr] items-start">
+        <section className="rounded-2xl border border-white/[0.07] bg-[#020617] overflow-hidden">
+          <div className="p-5 sm:p-6 border-b border-white/[0.06] flex items-start gap-3">
+            <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0"><UserPlus className="w-5 h-5 text-blue-400" /></div>
+            <div><h2 className="font-semibold">Novo usuário</h2><p className="text-xs text-slate-500 mt-1">Preencha os dados abaixo para liberar um novo acesso.</p></div>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="self-start sm:self-auto text-sm text-gray-400 hover:text-white transition"
-          >
-            ← Voltar
-          </button>
-        </div>
+          <form onSubmit={criarUsuario} className="p-5 sm:p-6 space-y-6">
+            <div className="grid sm:grid-cols-2 gap-5">
+              <Field label="Nome completo" htmlFor="user-name">
+                <div className="relative"><Users className="field-icon" /><Input id="user-name" value={form.nome} onChange={(event) => updateForm("nome", event.target.value)} required autoComplete="name" placeholder="Ex.: Mariana Souza" className="admin-input pl-10" /></div>
+              </Field>
+              <Field label="E-mail profissional" htmlFor="user-email">
+                <div className="relative"><Mail className="field-icon" /><Input id="user-email" type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} required autoComplete="email" placeholder="nome@academia.com" className="admin-input pl-10" /></div>
+              </Field>
+            </div>
 
-        <form onSubmit={criarUsuario} className="space-y-4">
-          <Input
-            placeholder="Nome"
-            name="nome"
-            value={form.nome}
-            onChange={handleChange}
-            required
-            className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-          />
+            <Field label="Senha temporária" htmlFor="user-password" hint={passwordStrength}>
+              <div className="relative"><LockKeyhole className="field-icon" /><Input id="user-password" type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => updateForm("password", event.target.value)} required minLength={6} autoComplete="new-password" placeholder="Mínimo de 6 caracteres" className="admin-input pl-10 pr-11" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button></div>
+              <div className="h-1 rounded-full bg-slate-800 overflow-hidden mt-2"><div className={cn("h-full transition-all", form.password.length >= 8 ? "w-full bg-emerald-500" : form.password.length >= 6 ? "w-2/3 bg-blue-500" : form.password.length ? "w-1/3 bg-amber-500" : "w-0")} /></div>
+            </Field>
 
-          <Input
-            placeholder="Email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-          />
+            <div className="space-y-3">
+              <Label className="text-xs text-slate-300">Nível de acesso</Label>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <RoleCard active={form.perfil === "atendente"} icon={Users} title="Atendente" description="Acessa e responde conversas." onClick={() => updateForm("perfil", "atendente")} />
+                <RoleCard active={form.perfil === "admin"} icon={ShieldCheck} title="Administrador" description="Também gerencia configurações." onClick={() => updateForm("perfil", "admin")} />
+              </div>
+            </div>
 
-          <Input
-            placeholder="Senha"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            className="h-11 bg-[#1e293b] border-none text-white placeholder:text-gray-400"
-          />
+            <Field label="Unidade" htmlFor="user-unit">
+              <Select value={form.unidade_id} onValueChange={(value) => updateForm("unidade_id", value)} disabled={loadingUnits} required>
+                <SelectTrigger id="user-unit" className="admin-input"><SelectValue placeholder={loadingUnits ? "Carregando unidades..." : "Selecione uma unidade"} /></SelectTrigger>
+                <SelectContent className="bg-slate-950 border-white/10 text-white">{unidades.map((unit) => <SelectItem key={unit.id} value={unit.id} className="focus:bg-slate-800 focus:text-white">{unit.nome}</SelectItem>)}</SelectContent>
+              </Select>
+            </Field>
 
-          <select
-            name="perfil"
-            value={form.perfil}
-            onChange={handleChange}
-            className="w-full h-11 px-3 rounded-md bg-[#1e293b] text-white border-none outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="atendente">Atendente</option>
-            <option value="admin">Admin</option>
-          </select>
+            {createdName && <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 flex gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" /><div><p className="text-sm font-medium text-emerald-300">Acesso criado</p><p className="text-xs text-emerald-400/70 mt-0.5">{createdName} já pode entrar no painel.</p></div></div>}
 
-          <select
-            name="unidade_id"
-            value={form.unidade_id}
-            onChange={handleChange}
-            required
-            className="w-full h-11 px-3 rounded-md bg-[#1e293b] text-white border-none outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Selecione a unidade</option>
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-white/[0.06]">
+              <p className="text-[11px] text-slate-500">O usuário receberá acesso à unidade selecionada.</p>
+              <Button type="submit" disabled={loading || loadingUnits || !form.unidade_id} className="h-11 rounded-xl bg-blue-600 hover:bg-blue-500 px-6 shadow-lg shadow-blue-950/30">
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <UserPlus className="w-4 h-4 mr-2" />}{loading ? "Criando acesso..." : "Criar usuário"}
+              </Button>
+            </div>
+          </form>
+        </section>
 
-            {unidades.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.nome}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-60"
-          >
-            {loading ? "Criando usuário..." : "Criar Usuário"}
-          </button>
-
-          {msg && (
-            <p className="text-sm text-center mt-2 text-gray-300 break-words">
-              {msg}
-            </p>
-          )}
-        </form>
+        <aside className="space-y-4">
+          <div className="rounded-2xl border border-white/[0.07] bg-[#020617] p-5"><Building2 className="w-5 h-5 text-blue-400 mb-4" /><h3 className="font-semibold text-sm">Vínculo por unidade</h3><p className="text-xs leading-relaxed text-slate-500 mt-2">Cada acesso visualiza apenas as conversas e dados da unidade selecionada.</p></div>
+          <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.04] p-5"><ShieldCheck className="w-5 h-5 text-amber-400 mb-4" /><h3 className="font-semibold text-sm">Permissões</h3><ul className="text-xs leading-relaxed text-slate-500 mt-2 space-y-2"><li><strong className="text-slate-300">Atendente:</strong> opera as conversas.</li><li><strong className="text-slate-300">Administrador:</strong> acessa conversas, planos, horários e usuários.</li></ul></div>
+        </aside>
       </div>
-    </div>
+    </AdminShell>
   );
+}
+
+function Field({ label, htmlFor, hint, children }: { label: string; htmlFor: string; hint?: string; children: React.ReactNode }) {
+  return <div className="space-y-2"><div className="flex justify-between gap-3"><Label htmlFor={htmlFor} className="text-xs text-slate-300">{label}</Label>{hint && <span className="text-[10px] text-slate-500">{hint}</span>}</div>{children}</div>;
+}
+
+function RoleCard({ active, icon: Icon, title, description, onClick }: { active: boolean; icon: typeof Users; title: string; description: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className={cn("text-left rounded-xl border p-4 transition flex gap-3", active ? "border-blue-500/60 bg-blue-500/10" : "border-white/[0.07] bg-slate-900/50 hover:border-white/15")}><div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", active ? "bg-blue-500/20 text-blue-400" : "bg-slate-800 text-slate-500")}><Icon className="w-4 h-4" /></div><div><p className="text-sm font-medium">{title}</p><p className="text-[11px] text-slate-500 mt-0.5">{description}</p></div></button>;
 }

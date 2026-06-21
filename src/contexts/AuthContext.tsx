@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { User } from '@/types';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  resetPassword: (email: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -67,13 +68,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return true;
 
-    } catch (error: any) {
-      console.log('🔥 ERRO LOGIN:', error.code);
+    } catch (error: unknown) {
+      const code = typeof error === 'object' && error !== null && 'code' in error
+        ? String(error.code)
+        : '';
+      console.log('🔥 ERRO LOGIN:', code);
 
-      if (error.code === 'auth/user-not-found') console.log('Usuário não existe');
-      if (error.code === 'auth/wrong-password') console.log('Senha incorreta');
-      if (error.code === 'auth/invalid-email') console.log('Email inválido');
+      if (code === 'auth/user-not-found') console.log('Usuário não existe');
+      if (code === 'auth/wrong-password') console.log('Senha incorreta');
+      if (code === 'auth/invalid-email') console.log('Email inválido');
 
+      return false;
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return true;
+    } catch (error) {
+      console.error('Erro ao enviar recuperação de senha', error);
       return false;
     }
   }, []);
@@ -95,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: !!user,
         login,
+        resetPassword,
         logout
       }}
     >

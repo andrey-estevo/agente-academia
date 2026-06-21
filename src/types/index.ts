@@ -56,6 +56,18 @@ export interface Message {
 
   horario: any;
 
+  /* metadados opcionais de mídia (WhatsApp / integrações) */
+  tipo?: string;
+  type?: string;
+  message_type?: string;
+  tipo_mensagem?: string;
+  mimetype?: string;
+  media_type?: string;
+  mediaType?: string;
+  audio_url?: string;
+  media_url?: string;
+  url?: string;
+
 }
 
 export interface Unit {

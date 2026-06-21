@@ -2,7 +2,9 @@ import { Conversation, ConversationStatus, Sector } from "@/types";
 import { StatusDot } from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MessageSquare, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -10,6 +12,7 @@ interface ConversationListProps {
   onSelect: (conv: Conversation) => void;
   statusFilter: ConversationStatus | "all";
   sectorFilter: Sector | "all";
+  isLoading?: boolean;
 }
 
 function limparNumero(numero: string) {
@@ -66,37 +69,76 @@ export function ConversationList({
   selectedId,
   onSelect,
   statusFilter,
-  sectorFilter
+  sectorFilter,
+  isLoading = false
 }: ConversationListProps) {
   const jaTocouRef = useRef(false);
+  const lastUpdatesRef = useRef<Record<string, string>>({});
+  const [search, setSearch] = useState("");
+  const [unread, setUnread] = useState<Record<string, number>>({});
 
-  const uniqueMap = new Map<string, Conversation>();
+  const unique = useMemo(() => {
+    const uniqueMap = new Map<string, Conversation>();
 
-  conversations.forEach((c) => {
-    const numero = limparNumero(
-      String(c.numero || c.conversa_id || "")
-    );
+    conversations.forEach((c) => {
+      const numero = limparNumero(String(c.numero || c.conversa_id || ""));
+      if (!numero || uniqueMap.has(numero)) return;
+      uniqueMap.set(numero, { ...c, numero, conversa_id: numero });
+    });
 
-    if (!numero) return;
+    return Array.from(uniqueMap.values());
+  }, [conversations]);
 
-    if (!uniqueMap.has(numero)) {
-      uniqueMap.set(numero, {
-        ...c,
-        numero,
-        conversa_id: numero
+  useEffect(() => {
+    setUnread((current) => {
+      const next = { ...current };
+
+      unique.forEach((conv) => {
+        const id = limparNumero(String(conv.numero || conv.conversa_id || ""));
+        const update = String(conv.ultima_atualizacao || conv.ultima_mensagem || "");
+        const previous = lastUpdatesRef.current[id];
+
+        if (previous && previous !== update && limparNumero(String(selectedId || "")) !== id) {
+          next[id] = (next[id] || 0) + 1;
+        } else if (!previous && conv.status === "aguardando") {
+          next[id] = Math.max(next[id] || 0, 1);
+        }
+
+        lastUpdatesRef.current[id] = update;
       });
-    }
-  });
 
-  const unique = Array.from(uniqueMap.values());
+      return next;
+    });
+  }, [unique, selectedId]);
 
-  const filtered = unique.filter((c) => {
+  useEffect(() => {
+    const id = limparNumero(String(selectedId || ""));
+    if (!id) return;
+    setUnread((current) => ({ ...current, [id]: 0 }));
+  }, [selectedId]);
+
+  const filtered = useMemo(() => unique.filter((c) => {
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
 
     if (sectorFilter !== "all" && c.setor !== sectorFilter) return false;
 
+    const term = search.trim().toLocaleLowerCase("pt-BR");
+    if (term) {
+      const content = `${c.nome || ""} ${c.numero || ""} ${c.ultima_mensagem || ""}`
+        .toLocaleLowerCase("pt-BR");
+      if (!content.includes(term)) return false;
+    }
+
     return true;
-  });
+  }).sort((a, b) => {
+    const aId = limparNumero(String(a.numero || a.conversa_id || ""));
+    const bId = limparNumero(String(b.numero || b.conversa_id || ""));
+    const unreadDiff = (unread[bId] || 0) - (unread[aId] || 0);
+    if (unreadDiff) return unreadDiff;
+    if (a.status === "aguardando" && b.status !== "aguardando") return -1;
+    if (b.status === "aguardando" && a.status !== "aguardando") return 1;
+    return new Date(b.ultima_atualizacao || 0).getTime() - new Date(a.ultima_atualizacao || 0).getTime();
+  }), [unique, statusFilter, sectorFilter, search, unread]);
 
   useEffect(() => {
     const temAguardando = unique.some(
@@ -116,18 +158,41 @@ export function ConversationList({
     }
   }, [unique]);
 
-  if (filtered.length === 0) {
-    return (
-      <div className="h-full flex items-center justify-center p-8 bg-[#0B1220]">
-        <p className="text-sm text-gray-400 text-center">
-          Nenhuma conversa encontrada
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full overflow-y-auto bg-[#0B1220] px-3 pt-2 pb-3 space-y-3">
+    <div className="h-full flex flex-col bg-[#0B1220]">
+      <div className="p-3 pb-2 shrink-0">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar nome, telefone ou mensagem"
+            className="h-10 pl-9 pr-9 rounded-xl border-white/10 bg-slate-900/80 text-sm text-white placeholder:text-slate-500 focus-visible:ring-blue-500/50"
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} aria-label="Limpar busca" className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="px-3 py-2 space-y-2 animate-pulse" aria-label="Carregando conversas">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="h-[106px] rounded-xl bg-slate-900 border border-white/[0.04]" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <div className="w-11 h-11 rounded-2xl bg-slate-800 flex items-center justify-center mb-3">
+            <MessageSquare className="w-5 h-5 text-slate-400" />
+          </div>
+          <p className="text-sm font-medium text-slate-300">Nenhuma conversa encontrada</p>
+          <p className="text-xs text-slate-500 mt-1">Tente ajustar a busca ou o filtro selecionado.</p>
+        </div>
+      ) : (
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-3 pb-3 space-y-2">
       <AnimatePresence>
         {filtered.map((conv) => {
           const numero = limparNumero(
@@ -156,6 +221,7 @@ export function ConversationList({
           const setor = conv.setor || "geral";
 
           const id = numero;
+          const unreadCount = unread[id] || 0;
 
           const selectedIdLimpo = limparNumero(
             String(selectedId || "")
@@ -179,17 +245,14 @@ export function ConversationList({
               exit={{ opacity: 0 }}
               onClick={() => onSelect(convNormalizada)}
               className={cn(
-                "w-full text-left rounded-2xl transition-all duration-200 border-2",
-                "p-3.5 bg-[#111827]/75 border-gray-300/20",
-                "shadow-[0_0_25px_rgba(37,99,235,0.08)]",
-                "backdrop-blur-sm",
+                "w-full text-left rounded-xl transition-all duration-200 border",
+                "p-3 bg-slate-900/70 border-white/[0.07]",
                 "hover:bg-[#1e293b]",
-                "hover:border-blue-400/35",
-                "hover:shadow-[0_0_30px_rgba(37,99,235,0.15)]",
+                "hover:border-blue-400/25",
                 "active:scale-[0.99]",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
                 selectedIdLimpo === id &&
-                "bg-[#1e293b] border-blue-400 shadow-[0_0_35px_rgba(37,99,235,0.22)]"
+                "bg-blue-500/10 border-blue-500/60"
               )}
             >
               <div className="flex items-start gap-3 min-w-0">
@@ -219,19 +282,22 @@ export function ConversationList({
                       </span>
                     </div>
 
-                    <span className="text-[10px] text-gray-400 whitespace-nowrap shrink-0 pt-0.5">
-                      {horario}
-                    </span>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-[10px] text-gray-400 whitespace-nowrap">{horario}</span>
+                      {unreadCount > 0 && (
+                        <span className="min-w-5 h-5 px-1.5 rounded-full bg-blue-600 text-[10px] font-semibold text-white flex items-center justify-center">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <p className="text-xs text-gray-300 truncate mt-2 leading-relaxed">
-                    {conv.ultima_mensagem || "Nova conversa"}
+                    {conv.ultima_mensagem?.trim() || "Mídia recebida"}
                   </p>
 
-                  <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mt-2 min-w-0">
                     <div className="flex items-center gap-2 min-w-0">
-                      <StatusDot status={status} />
-
                       <span
                         className={cn(
                           "text-[10px] px-2 py-0.5 rounded-full truncate",
@@ -259,6 +325,8 @@ export function ConversationList({
           );
         })}
       </AnimatePresence>
+      </div>
+      )}
     </div>
   );
 }
