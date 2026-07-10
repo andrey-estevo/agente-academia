@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   Settings,
+  ShieldCheck,
   Users
 } from "lucide-react";
 
@@ -347,6 +348,20 @@ const Dashboard = () => {
 
             {/* FOOTER */}
             <div className="mt-auto px-3 py-3 space-y-2 border-t border-gray-500/10">
+              {user?.perfil === "super_admin" && (
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start bg-[#1e293b] text-white hover:bg-[#334155] border border-gray-500/50 rounded-xl h-11"
+                  onClick={() => {
+                    setSidebarOpen(false);
+                    navigate("/super-admin");
+                  }}
+                >
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Super Admin
+                </Button>
+              )}
+
               {user?.perfil === "admin" && (
                 <Button
                   variant="secondary"
@@ -481,9 +496,10 @@ const Dashboard = () => {
           ) : (
             <div className="flex-1 flex items-center justify-center relative">
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="absolute w-[520px] max-w-[72%] aspect-square rounded-full bg-blue-500/10 blur-[120px]" />
                 <img
                   src="/logo-sky.png"
-                  className="w-[500px] max-w-[70%] opacity-5"
+                  className="relative w-[560px] max-w-[74%] opacity-[0.18] drop-shadow-[0_0_32px_rgba(59,130,246,0.22)]"
                   alt="Logo Sky Fit"
                 />
               </div>

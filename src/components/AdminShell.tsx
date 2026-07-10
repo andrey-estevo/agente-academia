@@ -22,7 +22,7 @@ export function AdminShell({ title, description, children, action }: AdminShellP
   return (
     <div className="min-h-[100dvh] bg-[#070F1F] text-white">
       <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-[#020617]/95 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-[env(safe-area-inset-top)] min-h-16 flex items-center gap-3">
           <button type="button" onClick={() => navigate("/dashboard")} aria-label="Voltar ao atendimento" className="w-10 h-10 rounded-xl border border-white/[0.08] bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center justify-center">
             <ArrowLeft className="w-4 h-4" />
           </button>
