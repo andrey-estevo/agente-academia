@@ -24,7 +24,11 @@ const Login = () => {
     setLoading(true);
     const success = await login(email.trim(), password);
     setLoading(false);
-    if (success) navigate("/dashboard");
+    if (success) {
+      const storedUser = sessionStorage.getItem("wa_panel_user");
+      const parsedUser = storedUser ? JSON.parse(storedUser) as { perfil?: string } : null;
+      navigate(parsedUser?.perfil === "super_admin" ? "/super-admin" : "/dashboard");
+    }
     else setError("Não foi possível entrar. Confira seu e-mail e sua senha.");
   }
 
@@ -51,15 +55,19 @@ const Login = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/[0.08] via-transparent to-transparent pointer-events-none" />
           <img src="/logo-sky.png" alt="" aria-hidden="true" className="absolute w-[560px] max-w-[82%] opacity-[0.035] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
-          <div className="relative">
-            <img src="/logo-sky.png" alt="Sky Fit Academia" className="w-44 h-auto object-contain object-left" />
+          <div className="relative max-w-xl flex justify-center">
+            <img src="/logo-sky.png" alt="Sky Fit Academia" className="w-52 xl:w-56 h-auto object-contain" />
           </div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-300 mb-6">
               <Headphones className="w-3.5 h-3.5" /> Central de atendimento
             </span>
-            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight leading-[1.08]">Atendimento mais rápido, organizado e próximo dos seus alunos.</h1>
+            <h1 className="text-[2.65rem] xl:text-5xl font-bold tracking-tight leading-[1.08] max-w-[640px]">
+              <span className="block whitespace-nowrap">Atendimento mais rápido,</span>
+              <span className="block">organizado e próximo</span>
+              <span className="block">dos seus alunos.</span>
+            </h1>
             <p className="text-slate-400 text-base leading-relaxed mt-6 max-w-lg">Gerencie conversas, acompanhe solicitações e mantenha sua equipe conectada em um só lugar.</p>
             <div className="flex items-center gap-3 mt-8 text-sm text-slate-400"><ShieldCheck className="w-5 h-5 text-emerald-400" /><span>Acesso protegido e exclusivo para colaboradores</span></div>
           </motion.div>
@@ -79,7 +87,7 @@ const Login = () => {
               <p className="text-sm text-slate-400 mt-2">Entre para gerenciar seus atendimentos.</p>
             </div>
 
-            <div className="rounded-2xl border border-white/[0.08] bg-[#020617]/90 p-5 sm:p-7 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="relative rounded-2xl border border-blue-400/20 bg-[#020617]/90 p-5 sm:p-7 shadow-[0_0_0_1px_rgba(59,130,246,0.08),0_0_42px_rgba(37,99,235,0.18),0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl before:absolute before:inset-0 before:rounded-2xl before:bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_42%)] before:pointer-events-none">
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-xs text-slate-300">E-mail</Label>

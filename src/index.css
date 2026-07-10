@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -114,15 +112,15 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
     /* 🔥 MELHOR RENDER MOBILE */
     min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
 
-    /* 🧠 SAFE AREA GLOBAL */
-    padding-top: env(safe-area-inset-top);
+    /* Safe areas são aplicadas nos componentes fixos para evitar espaço duplicado. */
+    padding: 0;
   }
 
   /* 🔥 SCROLL MAIS SUAVE */

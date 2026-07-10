@@ -83,6 +83,6 @@ export interface User {
   unidade_nome: string;
 
   // 🔥 ADICIONADO (NÃO QUEBRA NADA)
-  perfil: "admin" | "atendente";
+  perfil: "super_admin" | "admin" | "atendente";
   ativo?: boolean;
 }
