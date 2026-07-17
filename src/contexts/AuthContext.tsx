@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         unidade_id: unidadeId,
         unidade_nome: data?.unidade_nome || "",
         perfil,
-        ativo: data?.ativo ?? true
+        ativo: data?.ativo ?? true,
       };
 
       setUser(userData);
@@ -84,9 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return true;
     } catch (error: unknown) {
-      const code = typeof error === "object" && error !== null && "code" in error
-        ? String(error.code)
-        : "";
+      const code =
+        typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
 
       console.log("Erro no login:", code);
 
@@ -122,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         login,
         resetPassword,
-        logout
+        logout,
       }}
     >
       {children}

@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => ({
         "pwa-maskable-512x512.png",
         "logo-sky.png",
         "avatar.png",
-        "ting.mp3"
+        "ting.mp3",
       ],
       workbox: {
         globPatterns: ["**/*.{js,css,html,webmanifest}"],
@@ -43,8 +43,8 @@ export default defineConfig(({ mode }) => ({
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "google-font-styles",
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
-            }
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
           },
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
@@ -52,13 +52,13 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: "google-font-files",
               cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
-            }
-          }
-        ]
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+        ],
       },
-      devOptions: { enabled: false }
-    })
+      devOptions: { enabled: false },
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -69,11 +69,17 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("/node_modules/@firebase/") || id.includes("/node_modules/firebase/")) return "firebase";
+          if (id.includes("/node_modules/@firebase/") || id.includes("/node_modules/firebase/"))
+            return "firebase";
           if (id.includes("/node_modules/framer-motion/")) return "motion";
-          if (id.includes("/node_modules/react/") || id.includes("/node_modules/react-dom/") || id.includes("/node_modules/react-router")) return "react-vendor";
-        }
-      }
-    }
-  }
+          if (
+            id.includes("/node_modules/react/") ||
+            id.includes("/node_modules/react-dom/") ||
+            id.includes("/node_modules/react-router")
+          )
+            return "react-vendor";
+        },
+      },
+    },
+  },
 }));

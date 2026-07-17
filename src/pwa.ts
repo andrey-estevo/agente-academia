@@ -7,6 +7,6 @@ export function registerServiceWorker() {
     immediate: true,
     onRegisterError(error) {
       console.error("Não foi possível registrar o service worker", error);
-    }
+    },
   });
 }

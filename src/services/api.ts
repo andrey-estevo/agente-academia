@@ -1,8 +1,7 @@
 import { Conversation, Message, ConversationStatus } from "@/types";
 
 const API_BASE_URL =
-  import.meta.env.VITE_N8N_API_URL ||
-  "https://noisygrasshopper-n8n.cloudfy.live/webhook";
+  import.meta.env.VITE_N8N_API_URL || "https://noisygrasshopper-n8n.cloudfy.live/webhook";
 
 /* ================================
    FETCH BASE
@@ -12,9 +11,9 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
       "Content-Type": "application/json",
-      ...(options?.headers || {})
+      ...(options?.headers || {}),
     },
-    ...options
+    ...options,
   });
 
   if (!response.ok) {
@@ -39,7 +38,6 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 ================================ */
 
 export const activeApi = {
-
   /* ================================
      LISTAR CONVERSAS
   ================================= */
@@ -52,7 +50,6 @@ export const activeApi = {
    * Caso contrário, recupera todas as conversas disponíveis (modo legado).
    */
   getConversas: async (unidadeId?: string): Promise<Conversation[]> => {
-
     // constrói o endpoint de acordo com a presença de unidadeId
     const endpoint = unidadeId
       ? `/conversas?unidade_id=${encodeURIComponent(unidadeId)}`
@@ -63,7 +60,6 @@ export const activeApi = {
     if (!Array.isArray(res)) return [];
 
     return res.map((c: any) => {
-
       // normaliza o número/conversa_id retirando caracteres não numéricos
       const numero = String(c.numero || c.conversa_id || c.id || "")
         .replace("@s.whatsapp.net", "")
@@ -77,11 +73,9 @@ export const activeApi = {
         ultima_atualizacao: c.ultima_atualizacao || "",
         status: c.status || "bot",
         setor: c.setor || "geral",
-        unidade_id: c.unidade_id || ""
+        unidade_id: c.unidade_id || "",
       } as Conversation;
-
     });
-
   },
 
   /* ================================
@@ -96,11 +90,7 @@ export const activeApi = {
    * quanto o identificador da unidade; caso contrário, utiliza o modo
    * legado passando apenas o número.
    */
-  getMensagens: async (
-    conversaId: string,
-    unidade_id?: string
-  ): Promise<Message[]> => {
-
+  getMensagens: async (conversaId: string, unidade_id?: string): Promise<Message[]> => {
     // normaliza o identificador da conversa removendo caracteres não numéricos
     const numero = String(conversaId || "")
       .replace("@s.whatsapp.net", "")
@@ -124,14 +114,9 @@ export const activeApi = {
         conversa_id: numero,
         texto: msg.texto ?? "",
         remetente: msg.remetente ?? "cliente",
-        horario: msg.horario ?? ""
+        horario: msg.horario ?? "",
       }))
-      .sort(
-        (a, b) =>
-          new Date(a.horario).getTime() -
-          new Date(b.horario).getTime()
-      );
-
+      .sort((a, b) => new Date(a.horario).getTime() - new Date(b.horario).getTime());
   },
 
   /* ================================
@@ -144,7 +129,6 @@ export const activeApi = {
     atendente?: string,
     unidade_id?: string
   ) => {
-
     const telefone = String(numero || "")
       .replace("@s.whatsapp.net", "")
       .replace(/\D/g, "");
@@ -157,22 +141,16 @@ export const activeApi = {
         numero: telefone,
         mensagem: mensagem,
         atendente: atendente,
-        unidade_id: unidade_id
-      })
+        unidade_id: unidade_id,
+      }),
     });
-
   },
 
   /* ================================
      ALTERAR STATUS
   ================================= */
 
-  alterarStatus: async (
-    conversaId: string,
-    status: ConversationStatus,
-    unidade_id?: string
-  ) => {
-
+  alterarStatus: async (conversaId: string, status: ConversationStatus, unidade_id?: string) => {
     const numero = String(conversaId || "")
       .replace("@s.whatsapp.net", "")
       .replace(/\D/g, "");
@@ -184,12 +162,10 @@ export const activeApi = {
       body: JSON.stringify({
         numero: numero,
         status: status,
-        unidade_id: unidade_id
-      })
+        unidade_id: unidade_id,
+      }),
     });
-
-  }
-
+  },
 };
 
 export const api = activeApi;

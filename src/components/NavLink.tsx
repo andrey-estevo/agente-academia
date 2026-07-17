@@ -9,16 +9,7 @@ interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
 }
 
 const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
-  (
-    {
-      className,
-      activeClassName,
-      pendingClassName,
-      to,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
     return (
       <RouterNavLink
         ref={ref}
@@ -34,12 +25,9 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
             className,
 
             // estados
-            isActive &&
-              (activeClassName ||
-                "bg-[#1e293b] text-white border-l-4 border-blue-500"),
+            isActive && (activeClassName || "bg-[#1e293b] text-white border-l-4 border-blue-500"),
 
-            isPending &&
-              (pendingClassName || "opacity-60")
+            isPending && (pendingClassName || "opacity-60")
           )
         }
         {...props}

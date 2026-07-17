@@ -30,7 +30,6 @@ const App = () => {
         <AuthProvider>
           <Suspense fallback={<AppLoading />}>
             <Routes>
-
               {/* LOGIN */}
               <Route path="/" element={<Login />} />
 
@@ -75,7 +74,6 @@ const App = () => {
 
               {/* FALLBACK */}
               <Route path="*" element={<NotFound />} />
-
             </Routes>
           </Suspense>
         </AuthProvider>
@@ -86,7 +84,11 @@ const App = () => {
 
 function AppLoading() {
   return (
-    <div className="min-h-[100dvh] bg-[#070F1F] flex items-center justify-center" role="status" aria-label="Carregando aplicativo">
+    <div
+      className="min-h-[100dvh] bg-[#070F1F] flex items-center justify-center"
+      role="status"
+      aria-label="Carregando aplicativo"
+    >
       <div className="w-9 h-9 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
     </div>
   );

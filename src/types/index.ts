@@ -1,19 +1,8 @@
-export type ConversationStatus =
-  | "bot"
-  | "aguardando"
-  | "atendimento"
-  | "finalizado";
+export type ConversationStatus = "bot" | "aguardando" | "atendimento" | "finalizado";
 
-export type Sector =
-  | "financeiro"
-  | "planos"
-  | "geral"
-  | "Financeiro"
-  | "Planos"
-  | "Geral";
+export type Sector = "financeiro" | "planos" | "geral" | "Financeiro" | "Planos" | "Geral";
 
 export interface Conversation {
-
   /* legado frontend */
 
   id?: string;
@@ -39,11 +28,9 @@ export interface Conversation {
   unidade_id?: string;
 
   atendente_id?: string;
-
 }
 
 export interface Message {
-
   id?: string;
 
   conversa_id: string;
@@ -67,7 +54,6 @@ export interface Message {
   audio_url?: string;
   media_url?: string;
   url?: string;
-
 }
 
 export interface Unit {

@@ -4,9 +4,9 @@ import { db } from "@/lib/firebase";
 export async function getHorarios() {
   const snapshot = await getDocs(collection(db, "horarios"));
 
-  return snapshot.docs.map(doc => ({
+  return snapshot.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   }));
 }
 

@@ -11,7 +11,7 @@ const firebaseConfig = {
   projectId: "atendimento-academia",
   storageBucket: "atendimento-academia.appspot.com", // ⚠️ corrigido (padrão Firebase)
   messagingSenderId: "305343688413",
-  appId: "1:305343688413:web:a72c36a642339683bcb534"
+  appId: "1:305343688413:web:a72c36a642339683bcb534",
 };
 
 // Inicializa Firebase

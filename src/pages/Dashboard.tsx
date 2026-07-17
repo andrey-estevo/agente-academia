@@ -19,7 +19,7 @@ import {
   X,
   Settings,
   ShieldCheck,
-  Users
+  Users,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,9 +39,7 @@ function getConversationId(conv?: Conversation | null) {
     telefone?: string;
   };
 
-  return limparNumero(
-    c.conversa_id || c.numero || c.telefone || ""
-  );
+  return limparNumero(c.conversa_id || c.numero || c.telefone || "");
 }
 
 const Dashboard = () => {
@@ -49,30 +47,20 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  const [conversations, setConversations] = useState<
-    Conversation[]
-  >([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
 
-  const [selectedConv, setSelectedConv] =
-    useState<Conversation | null>(null);
+  const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
 
-  const [statusFilter, setStatusFilter] =
-    useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  const [lastUpdate, setLastUpdate] = useState(
-    new Date()
-  );
+  const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const selectedConvRef =
-    useRef<Conversation | null>(null);
+  const selectedConvRef = useRef<Conversation | null>(null);
 
-  const pendingStatusRef = useRef<
-    Record<string, ConversationStatus>
-  >({});
+  const pendingStatusRef = useRef<Record<string, ConversationStatus>>({});
 
   useEffect(() => {
     selectedConvRef.current = selectedConv;
@@ -88,8 +76,7 @@ const Dashboard = () => {
       const dataComStatusLocal = data.map((conv) => {
         const id = getConversationId(conv);
 
-        const pendingStatus =
-          pendingStatusRef.current[id];
+        const pendingStatus = pendingStatusRef.current[id];
 
         if (!pendingStatus) return conv;
 
@@ -101,7 +88,7 @@ const Dashboard = () => {
 
         return {
           ...conv,
-          status: pendingStatus
+          status: pendingStatus,
         };
       });
 
@@ -110,20 +97,14 @@ const Dashboard = () => {
 
       setLastUpdate(new Date());
 
-      const selectedAtual =
-        selectedConvRef.current;
+      const selectedAtual = selectedConvRef.current;
 
       if (selectedAtual) {
-        const selectedId =
-          getConversationId(selectedAtual);
+        const selectedId = getConversationId(selectedAtual);
 
-        const updated = dataComStatusLocal.find(
-          (c) => {
-            return (
-              getConversationId(c) === selectedId
-            );
-          }
-        );
+        const updated = dataComStatusLocal.find((c) => {
+          return getConversationId(c) === selectedId;
+        });
 
         if (updated) setSelectedConv(updated);
       }
@@ -134,37 +115,26 @@ const Dashboard = () => {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape")
-        setSelectedConv(null);
+      if (e.key === "Escape") setSelectedConv(null);
     };
 
     window.addEventListener("keydown", handleKey);
 
-    return () =>
-      window.removeEventListener(
-        "keydown",
-        handleKey
-      );
+    return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
-  function handleSelectConversation(
-    conv: Conversation
-  ) {
+  function handleSelectConversation(conv: Conversation) {
     const id = getConversationId(conv);
 
-    const pendingStatus =
-      pendingStatusRef.current[id];
+    const pendingStatus = pendingStatusRef.current[id];
 
     setSelectedConv({
       ...conv,
-      status: pendingStatus || conv.status
+      status: pendingStatus || conv.status,
     });
   }
 
-  function handleStatusChange(
-    convId: string,
-    newStatus: ConversationStatus
-  ) {
+  function handleStatusChange(convId: string, newStatus: ConversationStatus) {
     const id = limparNumero(convId);
 
     if (!id) return;
@@ -180,77 +150,68 @@ const Dashboard = () => {
 
       return {
         ...prev,
-        status: newStatus
+        status: newStatus,
       };
     });
 
     setConversations((prev) =>
       prev.map((conv) => {
-        const convIdLimpo =
-          getConversationId(conv);
+        const convIdLimpo = getConversationId(conv);
 
         if (convIdLimpo !== id) return conv;
 
         return {
           ...conv,
-          status: newStatus
+          status: newStatus,
         };
       })
     );
   }
 
   const counts = {
-    aguardando: conversations.filter(
-      (c) => c.status === "aguardando"
-    ).length,
+    aguardando: conversations.filter((c) => c.status === "aguardando").length,
 
-    atendimento: conversations.filter(
-      (c) => c.status === "atendimento"
-    ).length,
+    atendimento: conversations.filter((c) => c.status === "atendimento").length,
 
-    finalizado: conversations.filter(
-      (c) => c.status === "finalizado"
-    ).length,
+    finalizado: conversations.filter((c) => c.status === "finalizado").length,
 
-    bot: conversations.filter(
-      (c) => c.status === "bot"
-    ).length
+    bot: conversations.filter((c) => c.status === "bot").length,
   };
 
   const filterButtons = [
     {
       key: "all",
       label: "Todas",
-      icon: <MessageSquare className="w-4 h-4" />
+      icon: <MessageSquare className="w-4 h-4" />,
     },
 
     {
       key: "aguardando",
       label: "Aguardando",
       icon: <Clock className="w-4 h-4" />,
-      count: counts.aguardando
+      count: counts.aguardando,
     },
 
     {
       key: "atendimento",
       label: "Em atendimento",
       icon: <Headphones className="w-4 h-4" />,
-      count: counts.atendimento
+      count: counts.atendimento,
     },
 
     {
       key: "finalizado",
       label: "Finalizadas",
       icon: <CheckCircle className="w-4 h-4" />,
-      count: counts.finalizado
+      count: counts.finalizado,
     },
 
     {
       key: "bot",
       label: "Bot",
       icon: <Bot className="w-4 h-4" />,
-      count: counts.bot
-    }
+      count: counts.bot,
+    },
   ];
 
   return (
@@ -281,13 +242,9 @@ const Dashboard = () => {
                 </div>
 
                 <div>
-                  <h1 className="text-base sm:text-sm font-bold text-white">
-                    Atendimento
-                  </h1>
+                  <h1 className="text-base sm:text-sm font-bold text-white">Atendimento</h1>
 
-                  <p className="text-[11px] sm:text-[10px] text-gray-400">
-                    {user?.unidade_nome}
-                  </p>
+                  <p className="text-[11px] sm:text-[10px] text-gray-400">{user?.unidade_nome}</p>
                 </div>
               </div>
 
@@ -307,9 +264,7 @@ const Dashboard = () => {
                   key={f.key}
                   type="button"
                   onClick={() => {
-                    setStatusFilter(
-                      f.key as StatusFilter
-                    );
+                    setStatusFilter(f.key as StatusFilter);
 
                     setSidebarOpen(false);
                   }}
@@ -332,16 +287,13 @@ const Dashboard = () => {
                 >
                   {f.icon}
 
-                  <span className="flex-1 text-left">
-                    {f.label}
-                  </span>
+                  <span className="flex-1 text-left">{f.label}</span>
 
-                  {"count" in f &&
-                    f.count > 0 && (
-                      <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
-                        {f.count}
-                      </span>
-                    )}
+                  {"count" in f && f.count > 0 && (
+                    <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                      {f.count}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -423,9 +375,7 @@ const Dashboard = () => {
             <div className="relative shrink-0">
               <button
                 type="button"
-                onClick={() =>
-                  setSidebarOpen(true)
-                }
+                onClick={() => setSidebarOpen(true)}
                 className="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-500/15 bg-[#111827] hover:bg-[#1e293b] transition"
               >
                 <Menu className="w-5 h-5 text-gray-200" />
@@ -444,8 +394,7 @@ const Dashboard = () => {
               </h2>
 
               <p className="text-[11px] text-gray-400 truncate mt-0.5">
-                {user?.unidade_nome ||
-                  "Painel de atendimento"}
+                {user?.unidade_nome || "Painel de atendimento"}
               </p>
             </div>
 
@@ -459,13 +408,8 @@ const Dashboard = () => {
           <div className="flex-1 min-h-0 overflow-hidden">
             <ConversationList
               conversations={conversations}
-              selectedId={
-                selectedConv?.conversa_id ??
-                null
-              }
-              onSelect={
-                handleSelectConversation
-              }
+              selectedId={selectedConv?.conversa_id ?? null}
+              onSelect={handleSelectConversation}
               statusFilter={statusFilter}
               sectorFilter="all"
               isLoading={loadingConversations}
@@ -483,15 +427,9 @@ const Dashboard = () => {
           {selectedConv ? (
             <ChatView
               conversation={selectedConv}
-              onStatusChange={
-                handleStatusChange
-              }
-              onBack={() =>
-                setSelectedConv(null)
-              }
-              onOpenSidebar={() =>
-                setSidebarOpen(true)
-              }
+              onStatusChange={handleStatusChange}
+              onBack={() => setSelectedConv(null)}
+              onOpenSidebar={() => setSidebarOpen(true)}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center relative">
@@ -505,14 +443,9 @@ const Dashboard = () => {
               </div>
 
               <div className="relative z-10 text-center px-6">
-                <h2 className="text-white text-lg font-semibold">
-                  Bem-vindo ao painel
-                </h2>
+                <h2 className="text-white text-lg font-semibold">Bem-vindo ao painel</h2>
 
-                <p className="text-gray-400 mt-1 text-sm">
-                  Selecione uma conversa para
-                  começar
-                </p>
+                <p className="text-gray-400 mt-1 text-sm">Selecione uma conversa para começar</p>
               </div>
             </div>
           )}
